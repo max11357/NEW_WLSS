@@ -172,7 +172,7 @@ def cal_energy(node_member, cluster_member, shot_dis_data, count_lap):
 
     d_threshold = 0
     for i in range(len(shot_dis_data)):
-        d_threshold += i
+        d_threshold += shot_dis_data[i][2]
     d_threshold = d_threshold / len(shot_dis_data)
 
     # amount of data cluster node carry
