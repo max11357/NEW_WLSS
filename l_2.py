@@ -43,21 +43,19 @@ def random_cch(node_member, t_predefine, len_nodes):
 
 def distance_candidate(cch, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold):
     cluster_member = []
-    # print("cch : "+ str(len(cch)))
-    for main in cch:
+    cch.sort()
+    for item in range(len(cch)-1):
         distance = 0
-        for other in cch:
-            distance = math.sqrt((main[0] - other[0])**2 + (main[1] - other[1])**2)
-            # print(distance)
-            if main[0] != other[0] and main[1] != other[1]:
-                if distance < d_threshold:  # nodes (tranfer nodes)
-                    main[2] = main[2] - ((elec_tran+(fs*(distance**2)))*pkt_control)
-                elif distance >= d_threshold:  # nodes (tranfer nodes)
-                    main[2] = main[2] - ((elec_tran+(mpf*(distance**4)))*pkt_control)
-                other[2] = other[2]-(elec_rec*pkt_control)
-            if distance > 60 and other not in cluster_member:
-                cluster_member.append(other)
-        # print("*********************************")
+        distance = math.sqrt((cch[item][0]-cch[item+1][0])**2 +\
+                             (cch[item][1]-cch[item+1][1])**2)
+        if  distance < d_threshold :#nodes (tranfer nodes)
+            cch[item][2] = cch[item][2]-((elec_tran+(fs*(distance**2)))*pkt_control)
+        elif distance >= d_threshold : #nodes (tranfer nodes)
+            cch[item][2] = cch[item][2]-((elec_tran+(mpf*(distance**4)))*pkt_control)
+        cch[item+1][2] = cch[item+1][2]-(elec_rec*pkt_control)
+
+        if distance > 60 :
+            cluster_member.append(cch[item])
     return cluster_member
 
 
