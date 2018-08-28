@@ -55,7 +55,10 @@ def distance_candidate(cch, pkt_control, elec_tran, elec_rec, fs, mpf, d_thresho
         cch[item+1][2] = cch[item+1][2]-(elec_rec*pkt_control)
 
         if distance > 60 :
-            cluster_member.append(cch[item])
+            if float(cch[item][2]) <= float(cch[item+1][2]):
+                cluster_member.append(cch[item+1])
+            else:
+                cluster_member.append(cch[item])
     return cluster_member
 
 
