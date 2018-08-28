@@ -24,6 +24,7 @@ def random_nodes(width, height, station, set_energy, density):
            [random_x, random_y] not in station:
             node_member.append([random_x, random_y, set_energy])
         count += 1
+    print('node', len(node_member))
     return node_member, len_nodes
 
 
@@ -38,10 +39,13 @@ def random_cch(node_member, t_predefine, len_nodes):
         cch.append(c_cluster)
         node_member.remove(c_cluster)
         count += 1
+    print('len cch',len(cch))
     return cch
 
 
-def distance_candidate(cch, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold):
+def distance_candidate(cch, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold,node_member):
+    
+    print('remov candi',len(node_member))
     cluster_member = []
     cch.sort()
     for item in range(len(cch)-1):
@@ -59,6 +63,9 @@ def distance_candidate(cch, pkt_control, elec_tran, elec_rec, fs, mpf, d_thresho
                 cluster_member.append(cch[item+1])
             else:
                 cluster_member.append(cch[item])
+        else:
+            node_member.append(cch[item])
+    print(len(node_member))
     return cluster_member
 
 
@@ -104,7 +111,7 @@ def start():
         random_cch(node_member, t_predefine, len_nodes)
 
     cluster_member = \
-        distance_candidate(cch, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold)
+        distance_candidate(cch, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, node_member)
 
     plot_graph(cluster_member, node_member, cch, station)
 

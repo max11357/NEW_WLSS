@@ -41,9 +41,11 @@ def random_cch(node_member, t_predefine, len_nodes):
     return cch, node_member
 
 
-def distance_candidate(node_member, cch, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, r1):
+def distance_candidate(node_member, cch, pkt_control, elec_tran,\
+                       elec_rec, fs, mpf, d_threshold, r1):
     cluster_member = []
     cch.sort()
+    print(cch)
     print("cch : "+ str(len(cch)))
     for main in cch:
         check_dis = []
@@ -67,9 +69,14 @@ def distance_candidate(node_member, cch, pkt_control, elec_tran, elec_rec, fs, m
         for i in range(len(check_dis)):
             # if check_dis[i][1] < 60 and check_dis[i][0] != most_energy[0]:
             #     print(str(most_energy[3]) + " & " + str(cch[i][3]))
-            if check_dis[i][1] < 60 and check_dis[i][0] != most_energy[0] and cch[i][3] > most_energy[3]:
+            if check_dis[i][1] < 60 and \
+               check_dis[i][0] != most_energy[0] and \
+               cch[i][3] > most_energy[3]:
                 most_energy = cch[i]
-            elif check_dis[i][1] < 60 and check_dis[i][0] != most_energy[0] and cch[i][3] <= most_energy[3]:
+                
+            elif check_dis[i][1] < 60 and \
+                 check_dis[i][0] != most_energy[0] and \
+                 cch[i][3] <= most_energy[3]:
                 node_member.append(cch[i])
                 cch.remove(cch[i])
         cluster_member.append(most_energy)
