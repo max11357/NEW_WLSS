@@ -46,7 +46,8 @@ def distance_candidate(node_member, cch, pkt_control, elec_tran,\
     cluster_member = []
     cch.sort()
     print(cch)
-    print("cch : "+ str(len(cch)))
+    print("nodes : "+str(len(node_member)))
+    print("cch : "+str(len(cch)))
     for main in cch:
         check_dis = []
         most_energy =  main # deafult is Receiver
@@ -63,26 +64,8 @@ def distance_candidate(node_member, cch, pkt_control, elec_tran,\
 
         for i in range(len(check_dis)):
             print(check_dis[i])
-        print(str(most_energy) + "  BEFORE")
+        print(str(most_energy) + "  MAIN_BEFORE")
         print("--")
-
-        for i in range(len(check_dis)):
-            # if check_dis[i][1] < 60 and check_dis[i][0] != most_energy[0]:
-            #     print(str(most_energy[3]) + " & " + str(cch[i][3]))
-            if check_dis[i][1] < 60 and \
-               check_dis[i][0] != most_energy[0] and \
-               cch[i][3] > most_energy[3]:
-                most_energy = cch[i]
-                
-            elif check_dis[i][1] < 60 and \
-                 check_dis[i][0] != most_energy[0] and \
-                 cch[i][3] <= most_energy[3]:
-                node_member.append(cch[i])
-                cch.remove(cch[i])
-        cluster_member.append(most_energy)
-        cch.remove(most_energy)
-        print(str(most_energy) + "  AFTER")
-        print("*********************************")
 
         
 
