@@ -22,8 +22,10 @@ def random_nodes(width, height, station, set_energy, density):
         random_x, random_y = rd.randint(0, width), rd.randint(0, height)
         if [random_x, random_y] not in node_member and \
            [random_x, random_y] not in station:
-            node_member.append([count, random_x, random_y, set_energy])
+            node_member.append([random_x, random_y, set_energy])
         count += 1
+    print("amount nodes : " + str(len_nodes))
+    print("****************************************")
     return node_member, len_nodes
 
 
@@ -43,44 +45,65 @@ def random_cch(node_member, t_predefine, len_nodes):
 
 def distance_candidate(node_member, cch, pkt_control, elec_tran,\
                        elec_rec, fs, mpf, d_threshold, r1):
-    cluster_member = []
-    cch.sort()
-    print(cch)
-    print("nodes : "+str(len(node_member)))
-    print("cch : "+str(len(cch)))
-    for main in cch:
-        check_dis = []
-        most_energy =  main # deafult is Receiver
-        for other in cch:
-            distance = math.sqrt((main[1] - other[1])**2 + (main[2] - other[2])**2)
-            check_dis.append([other[0],distance])
+    # print("nodes BEFORE : "+str(len(node_member)))
+    # print("cch : "+str(len(cch)))
+    
+    # Calculate all energy use to send pkt control
+    for main in range(len(cch)):
+        for other in range(len(cch)):
+            distance = math.sqrt((cch[main][0] - cch[other][0])**2 + \
+                                 (cch[main][1] - cch[other][1])**2)
             # Send pkt control
             if  distance < d_threshold:
-                main[3] = main[3] - ((elec_tran+(fs*(distance**2)))*pkt_control)
+                cch[main][2] = cch[main][2] - ((elec_tran+(fs*(distance**2)))*pkt_control)
             elif distance >= d_threshold :
-                main[3] = main[3] - ((elec_tran+(mpf*(distance**4)))*pkt_control)
+                cch[main][2] = cch[main][2] - ((elec_tran+(mpf*(distance**4)))*pkt_control)
             # Receive pkt control
-            other[3] = other[3] - (elec_rec*pkt_control)
-
-        for i in range(len(check_dis)):
-            print(check_dis[i])
-        print(str(most_energy) + "  MAIN_BEFORE")
-        print("--")
-
+            cch[other][2] = cch[other][2] - (elec_rec*pkt_control)
+    
+    cluster_member = []
+    dont_check = []
+    # Choose who should be cluster member
+    for main in range(len(cch)):
+        log_dis = []
+        main_cch =  cch[main]
         
+        for other in range(len(cch)):
+            distance = math.sqrt((cch[main][0] - cch[other][0])**2 + \
+                                 (cch[main][1] - cch[other][1])**2)
+            log_dis.append(distance)
+        
+        for c in range(len(log_dis)):
+            if cch[c][:2] not in dont_check and log_dis[c] != 0:
+                if log_dis[c] <= (r1*2):
+                    if cch[c][2] > main_cch[2]:
+                        dont_check.append(main_cch[:2])
+                        main_cch = cch[c]
+                    else:
+                        dont_check.append(cch[c][:2])
+        if main_cch not in cluster_member and main_cch[:2] not in dont_check:
+            cluster_member.append(main_cch)
+            dont_check.append(main_cch[:2])
+    # append no use cch into node_member
+    for b in cch:
+        if b[:2] in dont_check and b not in cluster_member:
+            node_member.append(b)
+    # print("nodes AFTER : "+str(len(node_member)))
+    # print("Cluster member : "+str(len(cluster_member)))
+    return cluster_member, node_member
+    
 
-
-def plot_graph(cluster_member, node_member, cch, station):
+def plot_graph(cluster_member, node_member, cch, station, r2):
     # split 2d list to 1d *list* [use with graph only]
     node_x, node_y, energy_node = zip(*node_member)
     # PLOT
     fig, ax = plt.subplots()
     ax.set_aspect('equal', adjustable='datalim')
+    plt.plot(node_x[0:], node_y[0:], '.', color='green', alpha=0.7)
     for plot in cluster_member:
         plt.plot(plot[0], plot[1], '.', color='red', alpha=0.7)
-        ax.add_patch(plt.Circle((plot[0], plot[1]), 30, alpha=0.17))
+        ax.add_patch(plt.Circle((plot[0], plot[1]), r2, alpha=0.17))
         # ax.annotate(text, (plot[0][0], plot[0][1]))
-    plt.plot(node_x[0:], node_y[0:], '.', color='green', alpha=0.7)
     ax.plot()   # Causes an auto-scale update.
     plt.show()
 
@@ -93,15 +116,16 @@ def start():
     t_predefine =  float(0.1)
     num_base = 1
     pos_base = "0,0"
-    set_energy = 3 # set energy = 1 Joule
+    set_energy = 2 # set energy = 1 Joule
     pkt_control = 200 # bit
     pkt_data = 4000  # bit
     elec_tran = 50 * (10 ** (-9))  # 50 nanoj
     elec_rec = 50 * (10 ** (-9))  # 50 nanoj
     fs = 10 * (10 ** (-12))  # 10 picoj
-    mpf = 0.013 * (10 ** (-12))  # 0.013 picoj
+    mpf = 0.012 * (10 ** (-12))  # 0.012 picoj
     d_threshold = 87  # **********************
     r1 = 30 # meter
+    r2 = 80 # meter
 
     station = \
         base_station(num_base, pos_base)
@@ -113,9 +137,10 @@ def start():
         random_cch(node_member, t_predefine, len_nodes)
 
 
-    distance_candidate(node_member, cch, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, r1)
+    cluster_member, node_member = \
+        distance_candidate(node_member, cch, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, r1)
 
-    # plot_graph(cluster_member, node_member, cch, station)
+    plot_graph(cluster_member, node_member, cch, station, r2)
 
 
 start()
