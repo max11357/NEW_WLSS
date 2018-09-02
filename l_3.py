@@ -60,8 +60,6 @@ def distance_candidate(node_member, cch, pkt_control, elec_tran,\
                 cch[main][2] = cch[main][2] - ((elec_tran+(mpf*(distance**4)))*pkt_control)
             # Receive pkt control
             cch[other][2] = cch[other][2] - (elec_rec*pkt_control)
-    
-    
     # Choose who should be cluster member
     cluster_member = []
     dont_check = []
@@ -107,7 +105,6 @@ def nodes_select(cluster_member, node_member, pkt_control, elec_tran,\
                 cluster_member[cluster][2] = cluster_member[cluster][2] - ((elec_tran+(mpf*(distance**4)))*pkt_control)
             # Receive pkt control
             node_member[node][2] = node_member[node][2] - (elec_rec*pkt_control)
-
     # Choose who should be my cluster member
     log_select = []
     for node in range(len(node_member)):
@@ -131,9 +128,33 @@ def nodes_select(cluster_member, node_member, pkt_control, elec_tran,\
                 shotest = None
                 what_cluster = None
         log_select.append([what_cluster, shotest])
-        print("SELECT!! "+str(shotest))
-        print("**************************************")
-    return log_select
+        
+        # print("SELECT!! "+str(shotest))
+        # print("**************************************")
+
+    return log_select, cluster_member, node_member
+
+
+def data_to_cluster(cluster_member, node_member, log_select, pkt_data, elec_tran,\
+                 elec_rec, fs, mpf, d_threshold):
+    # for k in log_select:print(k)
+    print(len(log_select))
+
+    # Cluster receive all pkt data from nodes_member
+    for node in range(len(node_member)):
+        if log_select[node][0] != None or log_select[node][1] != None:
+            # Send pkt data [node-->cluster]
+            if  log_select[node][1] < d_threshold:
+                node_member[node][2] = node_member[node][2] - ((elec_tran+(fs*(log_select[node][1]**2)))*pkt_data)
+            elif log_select[node][1] >= d_threshold :
+                node_member[node][2] = node_member[node][2] - ((elec_tran+(mpf*(log_select[node][1]**4)))*pkt_data)
+            # Receive pkt data
+            cluster_member[log_select[node][0]][2] = cluster_member[log_select[node][0]][2] - (elec_rec*pkt_data)
+    # for m in node_member:print(m)
+    print(len(node_member))
+    
+    return cluster_member, node_member
+
 
     
 def plot_graph(cluster_member, node_member, cch, station, r2):
@@ -142,7 +163,9 @@ def plot_graph(cluster_member, node_member, cch, station, r2):
     # PLOT
     fig, ax = plt.subplots()
     ax.set_aspect('equal', adjustable='datalim')
+    # PLOT NODES DOT 
     plt.plot(node_x[0:], node_y[0:], '.', color='green', alpha=0.7)
+    # PLOT CLUSTER DOT 
     for plot in cluster_member:
         plt.plot(plot[0], plot[1], '.', color='red', alpha=0.7)
         ax.add_patch(plt.Circle((plot[0], plot[1]), r2, alpha=0.17))
@@ -184,7 +207,12 @@ def start():
         distance_candidate(node_member, cch, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, r1)
 
 
-    nodes_select(cluster_member, node_member, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, r2)
+    log_select, cluster_member, node_member = \
+        nodes_select(cluster_member, node_member, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, r2)
+
+
+    cluster_member, node_member = \
+        data_to_cluster(cluster_member, node_member, log_select, pkt_data, elec_tran, elec_rec, fs, mpf, d_threshold)
 
 
     plot_graph(cluster_member, node_member, cch, station, r2)
