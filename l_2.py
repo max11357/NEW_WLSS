@@ -43,9 +43,9 @@ def random_cch(node_member, t_predefine, len_nodes):
     return cch
 
 
-def distance_candidate(cch, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold,node_member):
-    
-    print('remov candi',len(node_member))
+def distance_candidate(cch, pkt_control, elec_tran, elec_rec, \
+                       fs, mpf, d_threshold,node_member, R1):
+    "calculate distance between each candidate then minus energy by send packet control "
     cluster_member = []
     cch.sort()
     for item in range(len(cch)-1):
@@ -58,18 +58,52 @@ def distance_candidate(cch, pkt_control, elec_tran, elec_rec, fs, mpf, d_thresho
             cch[item][2] = cch[item][2]-((elec_tran+(mpf*(distance**4)))*pkt_control)
         cch[item+1][2] = cch[item+1][2]-(elec_rec*pkt_control)
 
-        if distance > 60 :
+        if distance > R1+R1 :
             if float(cch[item][2]) <= float(cch[item+1][2]):
-                cluster_member.append(cch[item+1])
+                cluster_member.append(cch[item+1])                
             else:
                 cluster_member.append(cch[item])
         else:
             node_member.append(cch[item])
-    print(len(node_member))
+    print('node',len(node_member))
+    print(cluster_member)
+
     return cluster_member
 
+def cluster_head(node_member, cluster_member, d_threshold, elec_tran,elec_rec ,fs,pkt_control, mpf):
+    "cluster head announce in them area then each decide to join"
+    group_node = []
+    for node in range(len(node_member)):
+        shot_dis = None  # shortest distance
+        what_cluster = None  # what cluster?
+        for cluster in range(len(cluster_member)):
+            cal_distance = \
+                         math.sqrt((node_member[node][0] - cluster_member[cluster][0]) ** 2 +
+                         (node_member[node][1] - cluster_member[cluster][1]) ** 2)
+            if shot_dis is None:
+                shot_dis = cal_distance
+                what_cluster = cluster
+            elif cal_distance < shot_dis:
+                shot_dis = cal_distance
+                what_cluster = cluster
+                
+            if  cal_distance < d_threshold :#nodes (tranfer nodes)
+                cluster_member[cluster][2] = cluster_member[cluster][2]-\
+                                   ((elec_tran+(fs*(cal_distance**2)))*pkt_control)
+            elif cal_distance >= d_threshold : #nodes (tranfer nodes)
+                cluster_member[cluster][2] = cluster_member[cluster][2]-\
+                                   ((elec_tran+(mpf*(cal_distance**4)))*pkt_control)
+        node_member[node][2] = node_member[node][2]-(elec_rec*pkt_control) #used energy's cluster
+            
+        group_node.append([node, what_cluster, shot_dis])
+    for i in node_member:
+        for x in cluster_member:
+            if i[0:2] == x[0:2]:
+                print(i,x)
+    return group_node
 
-def plot_graph(cluster_member, node_member, cch, station):
+
+def plot_graph(cluster_member, node_member, cch, station, group_node):
     # split 2d list to 1d *list* [use with graph only]
     node_x, node_y, energy_node = zip(*node_member)
     # PLOT
@@ -79,6 +113,15 @@ def plot_graph(cluster_member, node_member, cch, station):
         plt.plot(plot[0], plot[1], '.', color='red', alpha=0.7)
         ax.add_patch(plt.Circle((plot[0], plot[1]), 30, alpha=0.17))
         # ax.annotate(text, (plot[0][0], plot[0][1]))
+
+    for z in range(len(group_node)):
+        if group_node[z][2] != 0 and float(node_member[z][2]) > 0.0:
+            plt.plot([node_member[int(group_node[z][0])][0], \
+                      cluster_member[int(group_node[z][1])][0]],\
+                     [node_member[int(group_node[z][0])][1], \
+                      cluster_member[int(group_node[z][1])][1]],\
+                     color='k', linestyle='-', linewidth=0.1)  # Black Line
+
     plt.plot(node_x[0:], node_y[0:], '.', color='green', alpha=0.7)
     ax.plot()   # Causes an auto-scale update.
     plt.show()
@@ -100,6 +143,7 @@ def start():
     fs = 10 * (10 ** (-12))  # 10 picoj
     mpf = 0.013 * (10 ** (-12))  # 0.013 picoj
     d_threshold = 87  # **********************
+    R1 = 30
 
     station = \
         base_station(num_base, pos_base)
@@ -111,9 +155,13 @@ def start():
         random_cch(node_member, t_predefine, len_nodes)
 
     cluster_member = \
-        distance_candidate(cch, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, node_member)
-
-    plot_graph(cluster_member, node_member, cch, station)
+        distance_candidate(cch, pkt_control, elec_tran, elec_rec, \
+                           fs, mpf, d_threshold, node_member, R1)
+    cluster_member, node_member = \
+                    cluster_head(node_member, cluster_member, \
+                                 d_threshold, elec_tran,elec_rec ,fs,pkt_control, mpf)
+    group_node = cluster_head(node_member, cluster_member)
+    plot_graph(cluster_member, node_member, cch, station, group_node)
 
     # print("t=",t_predefine, "cch=",candidate , 'node=',len_nodes)
 
