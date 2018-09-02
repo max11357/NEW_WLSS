@@ -48,7 +48,7 @@ def distance_candidate(node_member, cch, pkt_control, elec_tran,\
     # print("nodes BEFORE : "+str(len(node_member)))
     # print("cch : "+str(len(cch)))
     
-    # Calculate all energy use to send pkt control
+    # Calculate all energy use to send/Receive pkt control
     for main in range(len(cch)):
         for other in range(len(cch)):
             distance = math.sqrt((cch[main][0] - cch[other][0])**2 + \
@@ -61,18 +61,17 @@ def distance_candidate(node_member, cch, pkt_control, elec_tran,\
             # Receive pkt control
             cch[other][2] = cch[other][2] - (elec_rec*pkt_control)
     
+    
+    # Choose who should be cluster member
     cluster_member = []
     dont_check = []
-    # Choose who should be cluster member
     for main in range(len(cch)):
         log_dis = []
         main_cch =  cch[main]
-        
         for other in range(len(cch)):
             distance = math.sqrt((cch[main][0] - cch[other][0])**2 + \
                                  (cch[main][1] - cch[other][1])**2)
             log_dis.append(distance)
-        
         for c in range(len(log_dis)):
             if cch[c][:2] not in dont_check and log_dis[c] != 0:
                 if log_dis[c] <= (r1*2):
@@ -88,11 +87,55 @@ def distance_candidate(node_member, cch, pkt_control, elec_tran,\
     for b in cch:
         if b[:2] in dont_check and b not in cluster_member:
             node_member.append(b)
-    # print("nodes AFTER : "+str(len(node_member)))
-    # print("Cluster member : "+str(len(cluster_member)))
+    print("nodes AFTER : "+str(len(node_member)))
+    print("Cluster member : "+str(len(cluster_member)))
     return cluster_member, node_member
-    
 
+
+def nodes_select(cluster_member, node_member, pkt_control, elec_tran,\
+                 elec_rec, fs, mpf, d_threshold, r2):
+    
+    # Calculate all energy use to send/Receive pkt control
+    for node in range(len(node_member)):
+        for cluster in range(len(cluster_member)):
+            distance = math.sqrt((node_member[node][0] - cluster_member[cluster][0])**2 +
+                                 (node_member[node][1] - cluster_member[cluster][1])**2)
+            # Send pkt control
+            if  distance < d_threshold:
+                cluster_member[cluster][2] = cluster_member[cluster][2] - ((elec_tran+(fs*(distance**2)))*pkt_control)
+            elif distance >= d_threshold :
+                cluster_member[cluster][2] = cluster_member[cluster][2] - ((elec_tran+(mpf*(distance**4)))*pkt_control)
+            # Receive pkt control
+            node_member[node][2] = node_member[node][2] - (elec_rec*pkt_control)
+
+    # Choose who should be my cluster member
+    log_select = []
+    for node in range(len(node_member)):
+        shotest = None  # shortest distance
+        what_cluster = None  # what cluster?
+        check = 0
+        for cluster in range(len(cluster_member)):
+            distance = math.sqrt((node_member[node][0] - cluster_member[cluster][0])**2 +
+                                 (node_member[node][1] - cluster_member[cluster][1])**2)
+            # print(str(node_member[node][:2])+" With : "+str(cluster)+" - "+str(distance))
+            if distance <= r2:
+                if shotest is None:
+                    shotest = distance
+                    what_cluster = cluster
+                    check = 1
+                elif distance < shotest:
+                    shotest = distance
+                    what_cluster = cluster
+                    check = 1
+            elif distance > r2 and check == 0:
+                shotest = None
+                what_cluster = None
+        log_select.append([what_cluster, shotest])
+        print("SELECT!! "+str(shotest))
+        print("**************************************")
+    return log_select
+
+    
 def plot_graph(cluster_member, node_member, cch, station, r2):
     # split 2d list to 1d *list* [use with graph only]
     node_x, node_y, energy_node = zip(*node_member)
@@ -139,6 +182,10 @@ def start():
 
     cluster_member, node_member = \
         distance_candidate(node_member, cch, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, r1)
+
+
+    nodes_select(cluster_member, node_member, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, r2)
+
 
     plot_graph(cluster_member, node_member, cch, station, r2)
 
