@@ -137,8 +137,6 @@ def nodes_select(cluster_member, node_member, pkt_control, elec_tran,\
 
 def data_to_cluster(cluster_member, node_member, log_select, pkt_data, elec_tran,\
                  elec_rec, fs, mpf, d_threshold):
-    # for k in log_select:print(k)
-    print(len(log_select))
 
     # Cluster receive all pkt data from nodes_member
     for node in range(len(node_member)):
@@ -150,8 +148,6 @@ def data_to_cluster(cluster_member, node_member, log_select, pkt_data, elec_tran
                 node_member[node][2] = node_member[node][2] - ((elec_tran+(mpf*(log_select[node][1]**4)))*pkt_data)
             # Receive pkt data
             cluster_member[log_select[node][0]][2] = cluster_member[log_select[node][0]][2] - (elec_rec*pkt_data)
-    # for m in node_member:print(m)
-    print(len(node_member))
     
     return cluster_member, node_member
 
