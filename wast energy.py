@@ -86,13 +86,11 @@ def distance_candidate(node_member, cch, pkt_control, elec_tran,\
     for b in cch:
         if b[:2] in dont_check and b not in cluster_member:
             node_member.append(b)
-    print("nodes AFTER : "+str(len(node_member)))
-    print("Cluster member : "+str(len(cluster_member)))
     return cluster_member, node_member
 
 
 def nodes_select(cluster_member, node_member, pkt_control, elec_tran,\
-                 elec_rec, fs, mpf, d_threshold, r2):
+                 elec_rec, fs, mpf, d_threshold, r2, data_distance):
     
     # Calculate all energy use to send/Receive pkt control
     for node in range(len(node_member)):
@@ -108,6 +106,7 @@ def nodes_select(cluster_member, node_member, pkt_control, elec_tran,\
             node_member[node][2] = node_member[node][2] - (elec_rec*pkt_control)
     # Choose who should be my cluster member
     log_select = []
+    line =[]
     for node in range(len(node_member)):
         shotest = None  # shortest distance
         what_cluster = None  # what cluster?
@@ -121,24 +120,26 @@ def nodes_select(cluster_member, node_member, pkt_control, elec_tran,\
                     shotest = distance
                     what_cluster = cluster
                     check = 1
+                    print(node_member[node][0:2], cluster_member[cluster][0:2])
                 elif distance < shotest:
                     shotest = distance
                     what_cluster = cluster
                     check = 1
+                data_distance.append(shotest)
             elif distance > r2 and check == 0:
                 shotest = None
                 what_cluster = None
+
         log_select.append([what_cluster, shotest])
         
         # print("SELECT!! "+str(shotest))
         # print("**************************************")
 
-    return log_select, cluster_member, node_member
+    return log_select, cluster_member, node_member, data_distance, line
 
 
 def data_to_cluster(cluster_member, node_member, log_select, pkt_data, elec_tran,\
-                 elec_rec, fs, mpf, d_threshold):
-
+                 elec_rec, fs, mpf, d_threshold, station):
     # Cluster receive all pkt data from nodes_member
     for node in range(len(node_member)):
         if log_select[node][0] != None or log_select[node][1] != None:
@@ -149,17 +150,29 @@ def data_to_cluster(cluster_member, node_member, log_select, pkt_data, elec_tran
                 node_member[node][2] = node_member[node][2] - ((elec_tran+(mpf*(log_select[node][1]**4)))*pkt_data)
             # Receive pkt data
             cluster_member[log_select[node][0]][2] = cluster_member[log_select[node][0]][2] - (elec_rec*pkt_data)
-    
+
+##  wast energy's cluster send to base station
+    base_x, base_y = zip(*station)
+    for cluster in cluster_member:
+        distance = math.sqrt((int(base_x[0] - cluster[0])**2 +
+                             (int(base_y[0] - cluster[1])**2)))
+        if  distance < d_threshold:
+            cluster[2] = cluster[2] - ((elec_tran+(fs*(distance**2)))*pkt_data)
+        elif distance >= d_threshold :
+            cluster[2] = cluster[2] - ((elec_tran+(mpf*(distance**4)))*pkt_data)
+            # Receive pkt control
     return cluster_member, node_member
 
 
     
-def plot_graph(cluster_member, node_member, cch, station, r1,r2):
+def plot_graph(cluster_member, node_member, cch, station, r1,r2, log_select, data_distance, line):
     # split 2d list to 1d *list* [use with graph only]
-    node_x, node_y, energy_node = zip(*node_member)
+    node_x, node_y, set_energy = zip(*node_member)
     # PLOT
     fig, ax = plt.subplots()
     ax.set_aspect('equal', adjustable='datalim')
+##    plot base satation
+    plt.plot(int(-50), int(100), '.', color='black')
     # PLOT NODES DOT 
     plt.plot(node_x[0:], node_y[0:], '.', color='green', alpha=0.7)
     # PLOT CLUSTER DOT 
@@ -167,10 +180,16 @@ def plot_graph(cluster_member, node_member, cch, station, r1,r2):
         plt.plot(plot[0], plot[1], '.', color='red', alpha=0.7)
         ax.add_patch(plt.Circle((plot[0], plot[1]), r1, alpha=0.17))
         ax.add_patch(plt.Circle((plot[0], plot[1]), r2,color="pink", alpha=0.17))
-        # ax.annotate(text, (plot[0][0], plot[0][1]))
-    ax.plot()   # Causes an auto-scale update.
-    plt.show()
+    for line in line:
+        plt.plot([line[0][0], line[0][1]], [line[1][0], line[1][1]], linestyle='-', linewidth=0.1) 
 
+    ax.plot()   # Causes an auto-scale update.
+    plt.savefig("area.png")
+    plt.close()
+    plt.xlabel('distance')
+    plt.title('distance between cluster and nodes sensor')
+    plt.hist(data_distance ,bins = [0,5,10,15,20,25,30,35,40,45,50])
+    plt.savefig("distance.png")
 
 def start():
     # Change Variables Here!!
@@ -179,7 +198,7 @@ def start():
     density = float(0.0125)
     t_predefine =  float(0.2)
     num_base = 1
-    pos_base = "0,0"
+    pos_base = "-50,100"
     set_energy = 2 # set energy = 1 Joule
     pkt_control = 200 # bit
     pkt_data = 4000  # bit
@@ -190,6 +209,7 @@ def start():
     d_threshold = 87  # **********************
     r1 = 30 # meter
     r2 = 40 # meter
+    data_distance = []
 
     station = \
         base_station(num_base, pos_base)
@@ -205,15 +225,17 @@ def start():
         distance_candidate(node_member, cch, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, r1)
 
 
-    log_select, cluster_member, node_member = \
-        nodes_select(cluster_member, node_member, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, r2)
+    log_select, cluster_member, node_member, data_distance, line = \
+        nodes_select(cluster_member, node_member, pkt_control, elec_tran, \
+                     elec_rec, fs, mpf, d_threshold, r2, data_distance)
 
 
     cluster_member, node_member = \
-        data_to_cluster(cluster_member, node_member, log_select, pkt_data, elec_tran, elec_rec, fs, mpf, d_threshold)
+        data_to_cluster(cluster_member, node_member, log_select, pkt_data, \
+                        elec_tran, elec_rec, fs, mpf, d_threshold, station)
 
 
-    plot_graph(cluster_member, node_member, cch, station, r1,r2)
+    plot_graph(cluster_member, node_member, cch, station, r1,r2, log_select, data_distance, line)
 
 
 start()

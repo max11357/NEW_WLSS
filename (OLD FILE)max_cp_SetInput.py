@@ -264,8 +264,8 @@ def plot(shot_dis_data, node_member, cluster_member, station_member, count_lap, 
     plt.ylabel('amount of nodes')
     plt.title('distance between cluster and nodes sensor')
     plt.hist(keep ,bins = [0,5,10,15,20,25,30,35,40,45,50,55,60,65,70])
-    plt.savefig("distance.png")
-    plt.close()
+##    plt.savefig("distance.png")
+##    plt.close()
 
 
 def new_input(width, height, density, cluster_density, num_base, option):
