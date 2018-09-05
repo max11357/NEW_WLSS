@@ -230,7 +230,7 @@ def back_to_nodes(cluster_member, node_member):
 
 
     
-def plot_graph(cluster_member, node_member, cch, station, r1,r2):
+def plot_graph(cluster_member, node_member, cch, station_member, r1,r2, data_distance):
     # split 2d list to 1d *list* [use with graph only]
     node_x, node_y, energy_node = zip(*node_member)
     # PLOT
@@ -292,10 +292,10 @@ def start():
         start()
     
     else:
-
+        t_predefine = rd.randrange(1,20)/100
         count_lap = 0
         station_member, node_member = [], []
-
+        
         with open("station_member.csv", 'r') as csvnew:
             read = csv.reader(csvnew)
             for line1 in read:
@@ -337,7 +337,8 @@ def start():
             count_lap += 1
             if dead == 1:
                 print("LAP : "+ str(count_lap))
-                for i in node_member:print(i)
+                
+                plot_graph(cluster_member, node_member, cch, station_member, r1,r2,data_distance)
                 break;
             # if count_lap == 2:
             #     break
