@@ -196,6 +196,7 @@ def data_to_cluster(cluster_member, node_member, log_select, pkt_data, elec_tran
         ##    print("******************ดูค่าพลังงาน ณ data_to_cluster ***")
         ##    print("nodes : "+str(len(node_member)))
         ##  wast energy's cluster send to base station
+    if dead == 0:
         base_x, base_y = zip(*station_member)
         for cluster in cluster_member:
             distance = math.sqrt((int(base_x[0] - cluster[0])**2 +
@@ -206,14 +207,13 @@ def data_to_cluster(cluster_member, node_member, log_select, pkt_data, elec_tran
                 if cluster[2]-wast  > 0:
                     cluster[2] = cluster[2] -wast
                 else:
-                    break
+                    dead = 1
             elif distance >= d_threshold :
-                wast = ((elec_tran+(fs*(distance**4)))*pkt_data)
+                wast = ((elec_tran+(mpf*(distance**4)))*pkt_data)
                 if cluster[2]-wast  > 0:
                     cluster[2] = cluster[2] -wast
                 else:
-                    break
-            cluster[2] = cluster[2] - ((elec_tran+(mpf*(distance**4)))*pkt_data)
+                    dead = 1
             # Receive pkt control
         ##    for i in node_member:print(i)
 
