@@ -59,7 +59,7 @@ def random_cch(node_member, t_predefine, len_nodes):
 
 
 def distance_candidate(node_member, cch, pkt_control, elec_tran,\
-                       elec_rec, fs, mpf, d_threshold, r1):
+                       elec_rec, fs, mpf, d_threshold, r1,dead):
     # print("nodes BEFORE : "+str(len(node_member)))
     # print("cch : "+str(len(cch)))
     
@@ -71,16 +71,17 @@ def distance_candidate(node_member, cch, pkt_control, elec_tran,\
             # Send pkt control
             if  distance < d_threshold:
                 wast = (elec_tran+(fs*(distance**2)))*pkt_control
-                if cch[main][2]-wast == abs(cch[main][2]-wast):
+                if cch[main][2]-wast > 0:
                     cch[main][2] = cch[main][2]-wast
                 else:
-                    break;
+                    dead = 1
             elif distance >= d_threshold :
                 wast = ((elec_tran+(mpf*(distance**4)))*pkt_control)
-                if cch[main][2]-wast == abs(cch[main][2]-wast):
+                if cch[main][2]-wast  > 0:
                     cch[main][2] = cch[main][2]-wast
                 else:
-                    break;# Receive pkt control
+                    dead = 1
+            # Receive pkt control
             cch[other][2] = cch[other][2] - (elec_rec*pkt_control)
     # Choose who should be cluster member
     cluster_member = []
@@ -109,11 +110,11 @@ def distance_candidate(node_member, cch, pkt_control, elec_tran,\
             node_member.append(b)
     # print("nodes AFTER : "+str(len(node_member)))
     # print("Cluster member : "+str(len(cluster_member)))
-    return cluster_member, node_member
+    return cluster_member, node_member,dead
 
 
 def nodes_select(cluster_member, node_member, pkt_control, elec_tran,\
-                 elec_rec, fs, mpf, d_threshold, r2, data_distance):
+                 elec_rec, fs, mpf, d_threshold, r2, data_distance,dead):
     
     # Calculate all energy use to send/Receive pkt control
     for node in range(len(node_member)):
@@ -123,16 +124,17 @@ def nodes_select(cluster_member, node_member, pkt_control, elec_tran,\
             # Send pkt control
             if  distance < d_threshold:
                 wast = ((elec_tran+(fs*(distance**2)))*pkt_control)
-                if cluster_member[cluster][2]-wast == abs(cluster_member[cluster][2]-wast): 
+                if cluster_member[cluster][2]-wast > 0 : 
                     cluster_member[cluster][2] = cluster_member[cluster][2] - wast
                 else:
-                    break;
+                    dead = 1
             elif distance >= d_threshold :
                 wast = ((elec_tran+(mpf*(distance**4)))*pkt_control)
-                if cluster_member[cluster][2]-wast == abs(cluster_member[cluster][2]-wast):
+                if cluster_member[cluster][2]-wast  > 0:
                     cluster_member[cluster][2] = cluster_member[cluster][2] -wast
                 else:
-                    break;# Receive pkt control
+                    dead = 1
+            # Receive pkt control
             node_member[node][2] = node_member[node][2] - (elec_rec*pkt_control)
     # Choose who should be my cluster member
     log_select = []
@@ -165,11 +167,11 @@ def nodes_select(cluster_member, node_member, pkt_control, elec_tran,\
 ##    print("nodes : "+str(len(node_member)))
 ##    for i in node_member:print(i)
 
-    return log_select, cluster_member, node_member
+    return log_select, cluster_member, node_member,dead
 
 
 def data_to_cluster(cluster_member, node_member, log_select, pkt_data, elec_tran,\
-                 elec_rec, fs, mpf, d_threshold, station_member):
+                 elec_rec, fs, mpf, d_threshold, station_member,dead):
 
     # Cluster receive all pkt data from nodes_member
     for node in range(len(node_member)):
@@ -177,16 +179,17 @@ def data_to_cluster(cluster_member, node_member, log_select, pkt_data, elec_tran
             # Send pkt data [node-->cluster]
             if  log_select[node][1] < d_threshold:
                 wast = ((elec_tran+(fs*(log_select[node][1]**2)))*pkt_data)
-                if node_member[node][2]-wast == abs(node_member[node][2]-wast):
+                if node_member[node][2]-wast  > 0:
                     node_member[node][2] = node_member[node][2] - wast
                 else:
-                    break;
+                    dead = 1
             elif log_select[node][1] >= d_threshold :
                 wast = ((elec_tran+(mpf*(log_select[node][1]**4)))*pkt_data)
-                if node_member[node][2]-wast == abs(node_member[node][2]-wast):
+                if node_member[node][2]-wast  > 0:
                     node_member[node][2] = node_member[node][2] - wast
                 else:
-                    break# Receive pkt data
+                    dead = 1
+            # Receive pkt data
             cluster_member[log_select[node][0]][2] = cluster_member[log_select[node][0]][2] - (elec_rec*pkt_data)
 ##    print("******************ดูค่าพลังงาน ณ data_to_cluster ***")
 ##    print("nodes : "+str(len(node_member)))
@@ -198,13 +201,13 @@ def data_to_cluster(cluster_member, node_member, log_select, pkt_data, elec_tran
 
         if  distance < d_threshold:
             wast = ((elec_tran+(fs*(distance**2)))*pkt_data)
-            if cluster[2]-wast == abs(cluster[2]-wast):
+            if cluster[2]-wast  > 0:
                 cluster[2] = cluster[2] -wast
             else:
                 break;
         elif distance >= d_threshold :
             wast = ((elec_tran+(fs*(distance**4)))*pkt_data)
-            if cluster[2]-wast == abs(cluster[2]-wast):
+            if cluster[2]-wast  > 0:
                 cluster[2] = cluster[2] -wast
             else:
                 break;
@@ -212,7 +215,7 @@ def data_to_cluster(cluster_member, node_member, log_select, pkt_data, elec_tran
            # Receive pkt control
 ##    for i in node_member:print(i)
 
-    return cluster_member, node_member
+    return cluster_member, node_member,dead
 
 def back_to_nodes(cluster_member, node_member):
     """ before next loop all cluster switch back to node_member """
@@ -273,6 +276,7 @@ def start():
     r1 = 30 # meter
     r2 = 40 # meter
     data_distance = []
+    dead = 0
 
 
     if choose == 0:
@@ -307,31 +311,34 @@ def start():
                 len_nodes = int(text_file.read())
             
             cch, node_member = \
-                random_cch(node_member, t_predefine, len_nodes)
+                random_cch(node_member, t_predefine, len_nodes, )
         
 
-            cluster_member, node_member = \
-                distance_candidate(node_member, cch, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, r1)
+            cluster_member, node_member ,dead= \
+                distance_candidate(node_member, cch, pkt_control, elec_tran,\
+                                   elec_rec, fs, mpf, d_threshold, r1,dead)
         
 
-            log_select, cluster_member, node_member = \
+            log_select, cluster_member, node_member ,dead= \
                 nodes_select(cluster_member, node_member, pkt_control, \
-                             elec_tran, elec_rec, fs, mpf, d_threshold, r2, data_distance)
+                             elec_tran, elec_rec, fs, mpf, d_threshold,\
+                             r2, data_distance ,dead)
        
 
-            cluster_member, node_member = \
+            cluster_member, node_member ,dead= \
                 data_to_cluster(cluster_member, node_member, log_select, \
                                 pkt_data, elec_tran, elec_rec, fs, mpf, \
-                                d_threshold, station_member)
+                                d_threshold, station_member,dead)
     
 
             cluster_member, node_member = \
                 back_to_nodes(cluster_member, node_member)
 
             count_lap += 1
-            print("LAP : "+ str(count_lap))
-            if count_lap == 6000:
+            if dead == 1:
+                print("LAP : "+ str(count_lap))
                 for i in node_member:print(i)
+                break;
             # if count_lap == 2:
             #     break
             
