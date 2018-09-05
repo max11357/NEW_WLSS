@@ -1,6 +1,7 @@
 import random as rd
 import math
 import matplotlib.pyplot as plt
+import csv
 
 
 def base_station(num_base, pos_base):
@@ -9,6 +10,11 @@ def base_station(num_base, pos_base):
     station = []
     for _ in range(num_base):
         station.append(map(int, pos_base.split(',')))
+    # append data to csv. file
+    with open('station_member.csv', 'w', newline='') as csvnew:
+        write = csv.writer(csvnew)
+        for line in station:
+            write.writerow(line)
     return station
 
 
@@ -25,13 +31,21 @@ def random_nodes(width, height, station, set_energy, density):
             node_member.append([random_x, random_y, set_energy])
         count += 1
     node_member.sort()
+    # append data to csv. file
+        # append data to csv. file
+    with open('node_member.csv', 'w', newline='') as csvnew:
+        write = csv.writer(csvnew)
+        for line1 in node_member:
+            write.writerow(line1)
+    with open("len_nodes.txt", "w") as text_file:
+        text_file.write(str(len_nodes))
     print("amount nodes : " + str(len_nodes))
     print("****************************************")
     return node_member, len_nodes
 
 
 def random_cch(node_member, t_predefine, len_nodes):
-    """random Cluster from amount Node"""
+    """random cch from amount Node"""
     cch = []
     num_candidate = math.ceil(t_predefine*len_nodes)
     # random candidate cluster
@@ -86,8 +100,8 @@ def distance_candidate(node_member, cch, pkt_control, elec_tran,\
     for b in cch:
         if b[:2] in dont_check and b not in cluster_member:
             node_member.append(b)
-    print("nodes AFTER : "+str(len(node_member)))
-    print("Cluster member : "+str(len(cluster_member)))
+    # print("nodes AFTER : "+str(len(node_member)))
+    # print("Cluster member : "+str(len(cluster_member)))
     return cluster_member, node_member
 
 
@@ -132,6 +146,9 @@ def nodes_select(cluster_member, node_member, pkt_control, elec_tran,\
         
         # print("SELECT!! "+str(shotest))
         # print("**************************************")
+    print("******************ดูค่าพลังงาน ณ node_select ***")
+    print("nodes : "+str(len(node_member)))
+    for i in node_member:print(i)
 
     return log_select, cluster_member, node_member
 
@@ -149,7 +166,21 @@ def data_to_cluster(cluster_member, node_member, log_select, pkt_data, elec_tran
                 node_member[node][2] = node_member[node][2] - ((elec_tran+(mpf*(log_select[node][1]**4)))*pkt_data)
             # Receive pkt data
             cluster_member[log_select[node][0]][2] = cluster_member[log_select[node][0]][2] - (elec_rec*pkt_data)
-    
+    print("******************ดูค่าพลังงาน ณ data_to_cluster ***")
+    print("nodes : "+str(len(node_member)))
+    for i in node_member:print(i)
+
+    return cluster_member, node_member
+
+def back_to_nodes(cluster_member, node_member):
+    """ before next loop all cluster switch back to node_member """
+    for cluster in cluster_member:
+        node_member.append(cluster)
+    node_member.sort()
+    cluster_member = []
+    print("****************** ALL back to nodes ***")
+    print("nodes : "+str(len(node_member)))
+
     return cluster_member, node_member
 
 
@@ -173,9 +204,13 @@ def plot_graph(cluster_member, node_member, cch, station, r1,r2):
 
 
 def start():
+    print("Choose 0 set new input")
+    print("Choose 1 loop")
+    choose = int(input("choose : "))
+
     # Change Variables Here!!
-    width = 200 # meter
-    height = 200 # meter
+    width = 100 # meter
+    height = 100 # meter
     density = float(0.0125)
     t_predefine =  float(0.2)
     num_base = 1
@@ -191,29 +226,65 @@ def start():
     r1 = 30 # meter
     r2 = 40 # meter
 
-    station = \
-        base_station(num_base, pos_base)
 
-    node_member, len_nodes = \
-        random_nodes(width, height, station, set_energy, density)
-
-    cch, node_member = \
-        random_cch(node_member, t_predefine, len_nodes)
+    if choose == 0:
+        
+        station = \
+            base_station(num_base, pos_base)
 
 
-    cluster_member, node_member = \
-        distance_candidate(node_member, cch, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, r1)
+        node_member, len_nodes = \
+            random_nodes(width, height, station, set_energy, density)
+        
+
+        start()
+    
+    else:
+        count_lap = 0
+        station_member, node_member = [], []
+
+        with open("station_member.csv", 'r') as csvnew:
+            read = csv.reader(csvnew)
+            for line1 in read:
+                station_member.append(list(map(int, line1)))
+        with open("node_member.csv", 'r') as csvnew:
+            read = csv.reader(csvnew)
+            for line2 in read:
+                node_member.append(list(map(int, line2)))
+
+        while True:
+            
+            with open("len_nodes.txt", "r") as text_file:
+                len_nodes = int(text_file.read())
+            
+            cch, node_member = \
+                random_cch(node_member, t_predefine, len_nodes)
+        
+
+            cluster_member, node_member = \
+                distance_candidate(node_member, cch, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, r1)
+        
+
+            log_select, cluster_member, node_member = \
+                nodes_select(cluster_member, node_member, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, r2)
+       
+
+            cluster_member, node_member = \
+                data_to_cluster(cluster_member, node_member, log_select, pkt_data, elec_tran, elec_rec, fs, mpf, d_threshold)
+    
+
+            cluster_member, node_member = \
+                back_to_nodes(cluster_member, node_member)
+
+            count_lap += 1
+            print("LAP : "+ str(count_lap))
+            # if count_lap == 2:
+            #     break
+            
 
 
-    log_select, cluster_member, node_member = \
-        nodes_select(cluster_member, node_member, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, r2)
 
-
-    cluster_member, node_member = \
-        data_to_cluster(cluster_member, node_member, log_select, pkt_data, elec_tran, elec_rec, fs, mpf, d_threshold)
-
-
-    plot_graph(cluster_member, node_member, cch, station, r1,r2)
+        # plot_graph(cluster_member, node_member, cch, station, r1,r2)
 
 
 start()
