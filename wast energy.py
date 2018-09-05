@@ -24,6 +24,7 @@ def random_nodes(width, height, station, set_energy, density):
            [random_x, random_y] not in station:
             node_member.append([random_x, random_y, set_energy])
         count += 1
+    print('len node member', len(node_member))
     return node_member, len_nodes
 
 
@@ -89,7 +90,8 @@ def distance_candidate(node_member, cch, pkt_control, elec_tran,\
             dont_check.append(main_cch[:2])
     # append no use cch into node_member
     for b in cch:
-        if b[:2] in dont_check and b not in cluster_member:
+        if b[:2] in dont_check and \
+           b not in cluster_member :
             node_member.append(b)
     return cluster_member, node_member
 
@@ -153,6 +155,11 @@ def data_to_cluster(cluster_member, node_member, log_select, pkt_data, elec_tran
         if log_select[node][0] != None or log_select[node][1] != None:
             # Send pkt data [node-->cluster]
             if  log_select[node][1] < d_threshold:
+                node_member[node][2] = node_member[node][2] - ((elec_tran+(fs*(log_select[node][1]**2)))*pkt_data)
+            elif log_select[node][1] >= d_threshold :
+                node_member[node][2] = node_member[node][2] - ((elec_tran+(mpf*(log_select[node][1]**4)))*pkt_data)
+            
+            if  log_select[node][1] < d_threshold:
                 wast = ((elec_tran+(fs*(log_select[node][1]**2)))*pkt_data)
                 if node_member[node][2]-wast == abs(node_member[node][2]-wast):
                     node_member[node][2] = node_member[node][2] - wast
@@ -215,10 +222,11 @@ def plot_graph(cluster_member, node_member, cch, station, r1,r2, log_select, dat
     plt.title('distance between cluster and nodes sensor')
     plt.hist(data_distance ,bins = [0,5,10,15,20,25,30,35,40,45,50])
     plt.savefig("distance.png")
+    
 def loop(width,height,density,t_predefine ,num_base,pos_base,set_energy,\
          pkt_control,pkt_data,elec_tran,elec_rec,fs,mpf,d_threshold,r1,r2\
          ,data_distance, node_member, cluster_member, len_nodes,cch,log_select):
-    for i in range(2,1000):
+    for i in range(2,100):
         t_predefine = rd.randrange(1,20)/100
         station =base_station(num_base, pos_base)
         random_cch(node_member, t_predefine, len_nodes)
@@ -227,9 +235,10 @@ def loop(width,height,density,t_predefine ,num_base,pos_base,set_energy,\
                      elec_rec, fs, mpf, d_threshold, r2, data_distance)
         nodes_select(cluster_member, node_member, pkt_control, elec_tran, \
                      elec_rec, fs, mpf, d_threshold, r2, data_distance)
-        data_to_cluster(cluster_member, node_member, log_select, pkt_data, \
-                        elec_tran, elec_rec, fs, mpf, d_threshold, station)
-        print(i)
+##        data_to_cluster(cluster_member, node_member, log_select, pkt_data, \
+##                        elec_tran, elec_rec, fs, mpf, d_threshold, station)
+    return node_member
+        
 def start():
     # Change Variables Here!!
     width = 100 # meter
@@ -268,16 +277,12 @@ def start():
         nodes_select(cluster_member, node_member, pkt_control, elec_tran, \
                      elec_rec, fs, mpf, d_threshold, r2, data_distance)
 
-
     cluster_member, node_member = \
         data_to_cluster(cluster_member, node_member, log_select, pkt_data, \
                         elec_tran, elec_rec, fs, mpf, d_threshold, station)
     loop(width,height,density,t_predefine ,num_base,pos_base,set_energy,\
          pkt_control,pkt_data,elec_tran,elec_rec,fs,mpf,d_threshold,r1,r2\
          ,data_distance, node_member, cluster_member,len_nodes,cch,log_select)
-    plot_graph(cluster_member, node_member, cch, station, r1,r2, log_select, data_distance)
-
-    print(node_member)
-    print(cluster_member)
+    print('len node member when finish', len(node_member))
 
 start()
