@@ -228,10 +228,10 @@ def data_to_cluster(cluster_member, node_member, log_select, pkt_data, elec_tran
 def estimate_t(r1, t_predefine, r0):
     print(str(r0)+" : "+str(r1))
     if r0 > r1:
-        t_predefine -= 0.01
+        t_predefine += 0.01
         print("Condition 1")
     elif r0 < r1:
-        t_predefine += 0.01
+        t_predefine -= 0.01
         print("Condition 2")
     else:
         t_predefine = t_predefine

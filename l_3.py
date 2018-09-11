@@ -30,7 +30,6 @@ def random_nodes(width, height, station_member, set_energy, density):
            [random_x, random_y] not in station_member:
             node_member.append([random_x, random_y, set_energy])
         count += 1
-    node_member.sort()
     # append data to csv. file
         # append data to csv. file
     with open('node_member.csv', 'w', newline='') as csvnew:
@@ -85,28 +84,38 @@ def distance_candidate(node_member, cch, pkt_control, elec_tran,\
                         dead = 1
                 # Receive pkt control
                 cch[other][2] = cch[other][2] - (elec_rec*pkt_control)
+        # sort by energy [from most to least]
+        for lap in range(len(cch)-1,0,-1):
+            for j in range(lap):
+                if cch[j][2] < cch[j+1][2]:
+                    temp = cch[j]
+                    cch[j] = cch[j+1]
+                    cch[j+1] = temp
         # Choose who should be cluster member
         for main in range(len(cch)):
             log_dis = []
-            main_cch =  cch[main]
+            dont_check_in = []
+            check = 0
             for other in range(len(cch)):
                 distance = math.sqrt((cch[main][0] - cch[other][0])**2 + \
                                     (cch[main][1] - cch[other][1])**2)
                 log_dis.append(distance)
             for c in range(len(log_dis)):
-                if cch[c][:2] not in dont_check and log_dis[c] != 0:
-                    if log_dis[c] <= (r1*2):
-                        if cch[c][2] > main_cch[2]:
-                            dont_check.append(main_cch[:2])
-                            main_cch = cch[c]
-                        else:
-                            dont_check.append(cch[c][:2])
-            if main_cch not in cluster_member and main_cch[:2] not in dont_check:
-                cluster_member.append(main_cch)
-                dont_check.append(main_cch[:2])
+                if log_dis[c] <= (r1*2) and log_dis[c] != 0:
+                    if cch[main][2] >= cch[c][2]:
+                        dont_check.append(cch[c][:2])
+                        dont_check_in.append(cch[c][:2])
+                    elif  cch[main][2] < cch[c][2] and cch[c][:2] not in dont_check:
+                        check = 1
+                        break
+            if check == 1 and len(dont_check_in) > 0:
+                for i in dont_check_in:
+                    dont_check.remove(i)
+            if cch[main] not in cluster_member and check == 0 :
+                cluster_member.append(cch[main])
         # append no use cch into node_member
         for b in cch:
-            if b[:2] in dont_check and b not in cluster_member:
+            if b not in cluster_member:
                 node_member.append(b)
         # print("nodes AFTER : "+str(len(node_member)))
         # print("Cluster member : "+str(len(cluster_member)))
@@ -224,7 +233,6 @@ def back_to_nodes(cluster_member, node_member):
     """ before next loop all cluster switch back to node_member """
     for cluster in cluster_member:
         node_member.append(cluster)
-    node_member.sort()
     cluster_member = []
 ##    print("****************** ALL back to nodes ***")
 ##    print("nodes : "+str(len(node_member)))
@@ -266,10 +274,10 @@ def start():
     width = 100 # meter
     height = 100 # meter
     density = float(0.0125)
-    t_predefine =  float(0.2)
+    t_predefine =  float(0.09)
     num_base = 1
     pos_base = "0,0"
-    set_energy = 0.5 # set energy = 1 Joule
+    set_energy = 1 # set energy = 1 Joule
     pkt_control = 200 # bit
     pkt_data = 4000  # bit
     elec_tran = 50 * (10 ** (-9))  # 50 nanoj
@@ -306,8 +314,10 @@ def start():
             read = csv.reader(csvnew)
             for line2 in read:
                 node_member.append(list(map(float, line2)))
+        
+        
 
-        while count_lap < 1:
+        while True:
             
             with open("len_nodes.txt", "r") as text_file:
                 len_nodes = int(text_file.read())
@@ -334,7 +344,7 @@ def start():
                                 d_threshold, station_member,dead)
 
             
-            plot_graph(cluster_member, node_member, cch, station_member, r1,r2,data_distance)
+            #plot_graph(cluster_member, node_member, cch, station_member, r1,r2,data_distance)
 
 
             cluster_member, node_member = \
