@@ -59,15 +59,13 @@ def random_cch(node_member, t_predefine, len_nodes):
 
 def distance_candidate(node_member, cch, pkt_control, elec_tran,\
                        elec_rec, fs, mpf, d_threshold, r1, dead):
-    print("nodes BEFORE : "+str(len(node_member)))
-    print("cch : "+str(len(cch)))
-    cch2 = []
+    # print("nodes BEFORE : "+str(len(node_member)))
+    # print("cch : "+str(len(cch)))
     cluster_member = []
     dont_check = []
     if dead == 0:
         # Calculate all energy use to send/Receive pkt control
         for main in range(len(cch)):
-            cch2.append(cch[main])
             for other in range(len(cch)):
                 distance = math.sqrt((cch[main][0] - cch[other][0])**2 + \
                                     (cch[main][1] - cch[other][1])**2)
@@ -86,26 +84,14 @@ def distance_candidate(node_member, cch, pkt_control, elec_tran,\
                         dead = 1
                 # Receive pkt control
                 cch[other][2] = cch[other][2] - (elec_rec*pkt_control)
-        # sort by energy
+        # sort by energy [from most to least]
         for lap in range(len(cch)-1,0,-1):
             for j in range(lap):
                 if cch[j][2] < cch[j+1][2]:
                     temp = cch[j]
                     cch[j] = cch[j+1]
                     cch[j+1] = temp
-        for main in range(len(cch2)):
-            log_dis = []
-            for other in range(len(cch2)):
-                distance = math.sqrt((cch[main][0] - cch[other][0])**2 + \
-                                    (cch[main][1] - cch[other][1])**2)
-                log_dis.append(distance)
-            print(str(cch[main])+" : "+str(log_dis[main])+" ************")
-            for c in range(len(log_dis)):
-                if log_dis[c] != 0:
-                    print(str(cch[c])+" : "+str(log_dis[c]))
-            print("*********************************")
         # Choose who should be cluster member
-        # print(r1*2)
         for main in range(len(cch)):
             log_dis = []
             dont_check_in = []
@@ -127,24 +113,14 @@ def distance_candidate(node_member, cch, pkt_control, elec_tran,\
                     dont_check.remove(i)
             if cch[main] not in cluster_member and check == 0 :
                 cluster_member.append(cch[main])
-                print("ME SHOULD BE : "+str(cch[main]))
-            print(str(cch[main]))
-            for k in range(len(log_dis)):
-                print(str(cch[k])+" = "+str(log_dis[k]), end='')
-                if cch[k][:2] in dont_check:
-                    print(" CAN'T BE C")
-                else:
-                    print(" ")
-            print("************************************")
-        for i in cluster_member:print(i)
         # append no use cch into node_member
         for b in cch:
-            if b[:2] in dont_check and b not in cluster_member:
+            if b not in cluster_member:
                 node_member.append(b)
-        print("nodes AFTER : "+str(len(node_member)))
-        print("Cluster member : "+str(len(cluster_member)))
+        # print("nodes AFTER : "+str(len(node_member)))
+        # print("Cluster member : "+str(len(cluster_member)))
 
-    return cluster_member, node_member, dead, cch, cch2
+    return cluster_member, node_member, dead
 
 
 def nodes_select(cluster_member, node_member, pkt_control, elec_tran,\
@@ -257,7 +233,6 @@ def back_to_nodes(cluster_member, node_member):
     """ before next loop all cluster switch back to node_member """
     for cluster in cluster_member:
         node_member.append(cluster)
-    node_member.sort()
     cluster_member = []
 ##    print("****************** ALL back to nodes ***")
 ##    print("nodes : "+str(len(node_member)))
@@ -266,7 +241,7 @@ def back_to_nodes(cluster_member, node_member):
 
 
     
-def plot_graph(cluster_member, node_member, cch, station_member, r1, r2, data_distance, cch2):
+def plot_graph(cluster_member, node_member, cch, station_member, r1, r2, data_distance):
     # split 2d list to 1d *list* [use with graph only]
     node_x, node_y, energy_node = zip(*node_member)
     # PLOT
@@ -274,14 +249,12 @@ def plot_graph(cluster_member, node_member, cch, station_member, r1, r2, data_di
     ax.set_aspect('equal', adjustable='datalim')
     # PLOT NODES DOT 
     plt.plot(node_x[0:], node_y[0:], '.', color='green', alpha=0.7)
-    # PLOT CCH2 DOT 
-    for plot in cch2:
-        plt.plot(plot[0], plot[1], '.', color='black', alpha=0.7)
-        ax.add_patch(plt.Circle((plot[0], plot[1]), r1, alpha=0.17))
-        ax.add_patch(plt.Circle((plot[0], plot[1]), r2, alpha=0.17, color="pink"))
-    # # PLOT CLUSTER DOT 
+    # PLOT CLUSTER DOT 
     for plot in cluster_member:
         plt.plot(plot[0], plot[1], '.', color='red', alpha=0.7)
+        ax.add_patch(plt.Circle((plot[0], plot[1]), r1, alpha=0.17))
+        ax.add_patch(plt.Circle((plot[0], plot[1]), r2, alpha=0.17, color="pink"))
+        # ax.annotate(text, (plot[0][0], plot[0][1]))
     ax.plot()   # Causes an auto-scale update.
     plt.savefig("area.png")
     plt.close()
@@ -304,7 +277,7 @@ def start():
     t_predefine =  float(0.09)
     num_base = 1
     pos_base = "0,0"
-    set_energy = 0.5 # set energy = 1 Joule
+    set_energy = 1 # set energy = 1 Joule
     pkt_control = 200 # bit
     pkt_data = 4000  # bit
     elec_tran = 50 * (10 ** (-9))  # 50 nanoj
@@ -341,8 +314,10 @@ def start():
             read = csv.reader(csvnew)
             for line2 in read:
                 node_member.append(list(map(float, line2)))
+        
+        
 
-        while count_lap < 1:
+        while True:
             
             with open("len_nodes.txt", "r") as text_file:
                 len_nodes = int(text_file.read())
@@ -352,7 +327,7 @@ def start():
                 random_cch(node_member, t_predefine, len_nodes)
             
 
-            cluster_member, node_member ,dead, cch= \
+            cluster_member, node_member ,dead= \
                 distance_candidate(node_member, cch, pkt_control, elec_tran,\
                                    elec_rec, fs, mpf, d_threshold, r1,dead)
   
@@ -369,7 +344,7 @@ def start():
                                 d_threshold, station_member,dead)
 
             
-            plot_graph(cluster_member, node_member, cch, station_member, r1,r2,data_distance)
+            #plot_graph(cluster_member, node_member, cch, station_member, r1,r2,data_distance)
 
 
             cluster_member, node_member = \
@@ -399,7 +374,7 @@ def start():
             random_cch(node_member, t_predefine, len_nodes)
         
 
-        cluster_member, node_member ,dead, cch, cch2= \
+        cluster_member, node_member ,dead= \
             distance_candidate(node_member, cch, pkt_control, elec_tran,\
                                 elec_rec, fs, mpf, d_threshold, r1,dead)
 
@@ -416,7 +391,6 @@ def start():
                             d_threshold, station_member,dead)
 
         
-        plot_graph(cluster_member, node_member, cch, station_member, r1,r2,data_distance, cch2)
-
+        plot_graph(cluster_member, node_member, cch, station_member, r1,r2,data_distance)
 
 start()
