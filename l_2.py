@@ -33,6 +33,7 @@ def random_cch(node_member, t_predefine, len_nodes):
     cch = []
     num_candidate = math.ceil(t_predefine*len_nodes)
     # random candidate cluster
+    print(num_candidate)
     count = 0
     while len(cch) != num_candidate:
         c_cluster = node_member[rd.randint(0, len(node_member) - 1)]
@@ -96,10 +97,7 @@ def cluster_head(node_member, cluster_member, d_threshold, elec_tran,elec_rec ,f
         node_member[node][2] = node_member[node][2]-(elec_rec*pkt_control) #used energy's cluster
             
         group_node.append([node, what_cluster, shot_dis])
-    for i in node_member:
-        for x in cluster_member:
-            if i[0:2] == x[0:2]:
-                print(i,x)
+    print(cluster_member)
     return group_node
 
 
@@ -144,25 +142,9 @@ def start():
     mpf = 0.013 * (10 ** (-12))  # 0.013 picoj
     d_threshold = 87  # **********************
     R1 = 30
-
-    station = \
-        base_station(num_base, pos_base)
-
-    node_member, len_nodes = \
-        random_nodes(width, height, station, set_energy, density)
-
-    cch = \
-        random_cch(node_member, t_predefine, len_nodes)
-
-    cluster_member = \
-        distance_candidate(cch, pkt_control, elec_tran, elec_rec, \
-                           fs, mpf, d_threshold, node_member, R1)
-    cluster_member, node_member = \
-                    cluster_head(node_member, cluster_member, \
-                                 d_threshold, elec_tran,elec_rec ,fs,pkt_control, mpf)
-    group_node = cluster_head(node_member, cluster_member)
-    plot_graph(cluster_member, node_member, cch, station, group_node)
-
+    cluster_head(node_member, cluster_member, d_threshold, \
+                 elec_tran,elec_rec ,fs,pkt_control, mpf)
+   
     # print("t=",t_predefine, "cch=",candidate , 'node=',len_nodes)
 
 

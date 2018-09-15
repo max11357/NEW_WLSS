@@ -3,6 +3,7 @@ import math
 import matplotlib.pyplot as plt
 import csv
 
+
 def base_station(num_base, pos_base):
     """input base station point"""
     # Set POS base station here
@@ -16,8 +17,16 @@ def base_station(num_base, pos_base):
             write.writerow(line)
     return station_member
 
+def divi_area(width, height):
+    keep_width = 0
+    keep_heigth = 0
+    keep_width = math.ceil(width/50)
+    keep_height = math.ceil(height/50)
+    print(keep_width,keep_heigth)
+    return keep_width,keep_heigth
 
-def random_nodes(width, height, station_member, set_energy, density):
+
+def random_nodes(width, height, station_member, set_energy, density, t_predefine):
     """random Nodes"""
     node_member = []
     len_nodes = math.ceil(density * (width * height)) 
@@ -27,7 +36,7 @@ def random_nodes(width, height, station_member, set_energy, density):
         random_x, random_y = rd.randint(0, width), rd.randint(0, height)
         if [random_x, random_y] not in node_member and \
            [random_x, random_y] not in station_member:
-            node_member.append([random_x, random_y, set_energy])
+            node_member.append([random_x, random_y, set_energy, t_predefine])
         count += 1
     node_member.sort()
     # append data to csv. file
@@ -42,11 +51,12 @@ def random_nodes(width, height, station_member, set_energy, density):
     print("****************************************")
     return node_member, len_nodes
 
-
+    
 def random_cch(node_member, t_predefine, len_nodes):
     """random cch from amount Node"""
     cch = []
     num_candidate = math.ceil(t_predefine*len_nodes)
+##    print("num candidate : "+str(num_candidate))
     # random candidate cluster
     count = 0
     while len(cch) != num_candidate:
@@ -107,9 +117,6 @@ def distance_candidate(node_member, cch, pkt_control, elec_tran,\
         for b in cch:
             if b[:2] in dont_check and b not in cluster_member:
                 node_member.append(b)
-        # print("nodes AFTER : "+str(len(node_member)))
-        # print("Cluster member : "+str(len(cluster_member)))
-
     return cluster_member, node_member, dead
 
 
@@ -117,6 +124,7 @@ def nodes_select(cluster_member, node_member, pkt_control, elec_tran,\
                  elec_rec, fs, mpf, d_threshold, r2, data_distance, dead):
     data_distance = []
     log_select = []
+    r0 = []
     if dead == 0:
         # Calculate all energy use to send/Receive pkt control
         for node in range(len(node_member)):
@@ -146,36 +154,28 @@ def nodes_select(cluster_member, node_member, pkt_control, elec_tran,\
             for cluster in range(len(cluster_member)):
                 distance = math.sqrt((node_member[node][0] - cluster_member[cluster][0])**2 +
                                     (node_member[node][1] - cluster_member[cluster][1])**2)
-                # print(str(node_member[node][:2])+" With : "+str(cluster)+" - "+str(distance))
-##                if distance <= r2:
-##                    if shotest is None:
-##                        shotest = distance
-##                        what_cluster = cluster
-##                        check = 1
-##                    elif distance < shotest:
-##                        shotest = distance
-##                        what_cluster = cluster
-##                        check = 1
-##                    data_distance.append(shotest)
-##                elif distance > r2 and check == 0:
-##                    shotest = None
-##                    what_cluster = None
-                if shotest is None:
-                    shotest = distance
-                    what_cluster = cluster
-                elif distance < shotest:
-                    shotest = distance
-                    what_cluster = cluster
-                data_distance.append(shotest)
+                # get the most far
+                r0.append(distance)
+                # get the shotest distance and shot than r2
+                if distance <= r2:
+                    if shotest is None:
+                        shotest = distance
+                        what_cluster = cluster
+                        check = 1
+                    elif distance < shotest:
+                        shotest = distance
+                        what_cluster = cluster
+                        check = 1
+                    data_distance.append(shotest)
+                elif distance > r2 and check == 0:
+                    shotest = None
+                    what_cluster = None
             log_select.append([what_cluster, shotest])
-            
-            # print("SELECT!! "+str(shotest))
-            # print("**************************************")
-        ##    print("******************ดูค่าพลังงาน ณ node_select ***")
-        ##    print("nodes : "+str(len(node_member)))
-        ##    for i in node_member:print(i)
+            print(what_cluster, r0)
+        r0 = max(r0)
 
-    return log_select, cluster_member, node_member, data_distance, dead
+
+    return log_select, cluster_member, node_member, data_distance, dead, r0
 
 
 def data_to_cluster(cluster_member, node_member, log_select, pkt_data, elec_tran,\
@@ -258,7 +258,7 @@ def plot_graph(cluster_member, node_member, cch, station_member, r1, r2, data_di
     plt.close()
     plt.xlabel('distance')
     plt.title('distance between cluster and nodes sensor')
-    plt.hist(data_distance) 
+    plt.hist(data_distance ,bins = [0,5,10,15,20,25,30,35,40,45,50])
     plt.savefig("distance.png")
 
 
@@ -268,7 +268,7 @@ def start():
     choose = int(input("choose : "))
 
     # Change Variables Here!!
-    width = 00 # meter
+    width = 100 # meter
     height = 100 # meter
     density = float(0.0125)
     t_predefine =  float(0.2)
@@ -283,7 +283,7 @@ def start():
     mpf = 0.012 * (10 ** (-12))  # 0.012 picoj
     d_threshold = 87  # **********************
     r1 = 30 # meter
-    r2 = 40 # meter
+    r2 = 90 # meter
 
     if choose == 0:
         
@@ -292,8 +292,8 @@ def start():
 
 
         node_member, len_nodes = \
-            random_nodes(width, height, station_member, set_energy, density)
-        
+            random_nodes(width, height, station_member, set_energy, density, t_predefine)
+        divi_area(width, height)
 
         start()
     
@@ -301,7 +301,7 @@ def start():
         dead = 0
         count_lap = 0
         station_member, node_member, data_distance = [], [], []
-        t_predefine = rd.randrange(1,20)/100
+        t_predefine = rd.randrange(1,100)/100
         count_lap = 0
         
         with open("station_member.csv", 'r') as csvnew:
@@ -328,10 +328,10 @@ def start():
                                    elec_rec, fs, mpf, d_threshold, r1,dead)
   
 
-            log_select, cluster_member, node_member, data_distance, dead= \
+            log_select, cluster_member, node_member, data_distance, dead, r0= \
                 nodes_select(cluster_member, node_member, pkt_control, \
                              elec_tran, elec_rec, fs, mpf, d_threshold,\
-                             r2, data_distance , dead)
+                             r2, data_distance, dead)
 
 
             cluster_member, node_member ,dead= \
@@ -343,14 +343,14 @@ def start():
             cluster_member, node_member = \
                 back_to_nodes(cluster_member, node_member)
 
+
+##            t_predefine = estimate_t(r1, t_predefine, r0)
+##            print(t_predefine)
             count_lap += 1
             if dead == 1:
-                print("LAP : "+ str(count_lap))
-                for f in node_member :print(f)
-                plot_graph(cluster_member, node_member, cch, station_member, r1,r2,data_distance)
                 break;
-
-        # plot_graph(cluster_member, node_member, cch, station_member, r1, r2, data_distance)
+        print("LAP : "+ str(count_lap))
+        plot_graph(cluster_member, node_member, cch, station_member, r1, r2, data_distance)
 
 
 start()
