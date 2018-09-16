@@ -18,7 +18,7 @@ def base_station(num_base, pos_base):
     return station_member
 
 
-def random_nodes(width, height, station_member, set_energy, density):
+def random_nodes(width, height, station_member, set_energy, density, t_predefine):
     """random Nodes"""
     node_member = []
     len_nodes = math.ceil(density * (width * height)) 
@@ -28,7 +28,7 @@ def random_nodes(width, height, station_member, set_energy, density):
         random_x, random_y = rd.randint(0, width), rd.randint(0, height)
         if [random_x, random_y] not in node_member and \
            [random_x, random_y] not in station_member:
-            node_member.append([random_x, random_y, set_energy])
+            node_member.append([random_x, random_y, set_energy, t_predefine])
         count += 1
     # append data to csv. file
         # append data to csv. file
@@ -38,22 +38,20 @@ def random_nodes(width, height, station_member, set_energy, density):
             write.writerow(line1)
     with open("len_nodes.txt", "w") as text_file:
         text_file.write(str(len_nodes))
-    print("amount nodes : " + str(len_nodes))
-    print("****************************************")
+
     return node_member, len_nodes
 
 
-def random_cch(node_member, t_predefine, len_nodes):
+def random_cch(node_member, len_nodes):
     """random cch from amount Node"""
     cch = []
-    num_candidate = math.ceil(t_predefine*len_nodes)
     # random candidate cluster
-    count = 0
-    while len(cch) != num_candidate:
-        c_cluster = node_member[rd.randint(0, len(node_member) - 1)]
-        cch.append(c_cluster)
-        node_member.remove(c_cluster)
-        count += 1
+    for node in node_member:
+        prob_v = round(rd.uniform(0, 1), 1)
+        if prob_v <= node[3]:
+            cch.append(node)
+            node_member.remove(node)
+            
     return cch, node_member
 
 
@@ -266,15 +264,16 @@ def plot_graph(cluster_member, node_member, cch, station_member, r1, r2, data_di
 
 def start():
     print("Choose 0 set new input")
-    print("Choose 1 loop")
-    print("Choose 2 get 1 lap")
+    print("Choose 1 loop with fixed T-value")
+    print("Choose 2 loop with dynamic T-value")
+    print("Choose 3 get 1 lap")
     choose = int(input("choose : "))
 
     # Change Variables Here!!
     width = 100 # meter
     height = 100 # meter
     density = float(0.0125)
-    t_predefine =  float(0.09)
+    t_predefine =  float(0.2)
     num_base = 1
     pos_base = "0,0"
     set_energy = 1 # set energy = 1 Joule
@@ -285,8 +284,8 @@ def start():
     fs = 10 * (10 ** (-12))  # 10 picoj
     mpf = 0.012 * (10 ** (-12))  # 0.012 picoj
     d_threshold = 87  # **********************
-    r1 = 15 # meter
-    r2 = 40 # meter
+    r1 = 30 # meter
+    r2 = r1*((2*math.log(10))**(0.5)) # meter
 
     if choose == 0:
         
@@ -295,7 +294,7 @@ def start():
 
 
         node_member, len_nodes = \
-            random_nodes(width, height, station_member, set_energy, density)
+            random_nodes(width, height, station_member, set_energy, density, t_predefine)
         
 
         start()
@@ -304,7 +303,6 @@ def start():
         dead = 0
         count_lap = 0
         station_member, node_member, data_distance = [], [], []
-        t_predefine = rd.randrange(1,20)/100
         
         with open("station_member.csv", 'r') as csvnew:
             read = csv.reader(csvnew)
@@ -315,8 +313,6 @@ def start():
             for line2 in read:
                 node_member.append(list(map(float, line2)))
         
-        
-
         while True:
             
             with open("len_nodes.txt", "r") as text_file:
@@ -359,6 +355,58 @@ def start():
         dead = 0
         count_lap = 0
         station_member, node_member, data_distance = [], [], []
+        
+        with open("station_member.csv", 'r') as csvnew:
+            read = csv.reader(csvnew)
+            for line1 in read:
+                station_member.append(list(map(int, line1)))
+        with open("node_member.csv", 'r') as csvnew:
+            read = csv.reader(csvnew)
+            for line2 in read:
+                node_member.append(list(map(float, line2)))
+        
+        while True:
+            
+            with open("len_nodes.txt", "r") as text_file:
+                len_nodes = int(text_file.read())
+
+            
+            cch, node_member = \
+                random_cch(node_member, t_predefine, len_nodes)
+            
+
+            cluster_member, node_member ,dead= \
+                distance_candidate(node_member, cch, pkt_control, elec_tran,\
+                                   elec_rec, fs, mpf, d_threshold, r1,dead)
+  
+
+            log_select, cluster_member, node_member, data_distance, dead= \
+                nodes_select(cluster_member, node_member, pkt_control, \
+                             elec_tran, elec_rec, fs, mpf, d_threshold,\
+                             r2, data_distance , dead)
+
+
+            cluster_member, node_member ,dead= \
+                data_to_cluster(cluster_member, node_member, log_select, \
+                                pkt_data, elec_tran, elec_rec, fs, mpf, \
+                                d_threshold, station_member,dead)
+
+            
+            #plot_graph(cluster_member, node_member, cch, station_member, r1,r2,data_distance)
+
+
+            cluster_member, node_member = \
+                back_to_nodes(cluster_member, node_member)
+            
+            count_lap += 1
+            if dead == 1:
+                print("LAP : "+ str(count_lap))
+                break;
+
+    elif choose == 3:
+        dead = 0
+        count_lap = 0
+        station_member, node_member, data_distance = [], [], []
         with open("station_member.csv", 'r') as csvnew:
             read = csv.reader(csvnew)
             for line1 in read:
@@ -371,26 +419,26 @@ def start():
                 len_nodes = int(text_file.read())
 
         cch, node_member = \
-            random_cch(node_member, t_predefine, len_nodes)
+            random_cch(node_member, len_nodes)
         
 
-        cluster_member, node_member ,dead= \
-            distance_candidate(node_member, cch, pkt_control, elec_tran,\
-                                elec_rec, fs, mpf, d_threshold, r1,dead)
+        # cluster_member, node_member ,dead= \
+        #     distance_candidate(node_member, cch, pkt_control, elec_tran,\
+        #                         elec_rec, fs, mpf, d_threshold, r1,dead)
 
 
-        log_select, cluster_member, node_member, data_distance, dead= \
-            nodes_select(cluster_member, node_member, pkt_control, \
-                            elec_tran, elec_rec, fs, mpf, d_threshold,\
-                            r2, data_distance , dead)
+        # log_select, cluster_member, node_member, data_distance, dead= \
+        #     nodes_select(cluster_member, node_member, pkt_control, \
+        #                     elec_tran, elec_rec, fs, mpf, d_threshold,\
+        #                     r2, data_distance , dead)
 
 
-        cluster_member, node_member ,dead= \
-            data_to_cluster(cluster_member, node_member, log_select, \
-                            pkt_data, elec_tran, elec_rec, fs, mpf, \
-                            d_threshold, station_member,dead)
+        # cluster_member, node_member ,dead= \
+        #     data_to_cluster(cluster_member, node_member, log_select, \
+        #                     pkt_data, elec_tran, elec_rec, fs, mpf, \
+        #                     d_threshold, station_member,dead)
 
         
-        plot_graph(cluster_member, node_member, cch, station_member, r1,r2,data_distance)
+        # plot_graph(cluster_member, node_member, cch, station_member, r1,r2,data_distance)
 
 start()
