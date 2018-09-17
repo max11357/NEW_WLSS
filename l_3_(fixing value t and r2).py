@@ -46,11 +46,12 @@ def random_cch(node_member, len_nodes):
     """random cch from amount Node"""
     cch = []
     # random candidate cluster
-    for node in node_member:
-        prob_v = round(rd.uniform(0, 1), 1)
-        if prob_v <= node[3]:
-            cch.append(node)
-            node_member.remove(node)
+    while len(cch) == 0:
+        for node in node_member:
+            prob_v = round(rd.uniform(0, 1), 1)
+            if prob_v <= node[3]:
+                cch.append(node)
+                node_member.remove(node)
 
     return cch, node_member
 
@@ -115,8 +116,9 @@ def distance_candidate(node_member, cch, pkt_control, elec_tran,\
         for b in cch:
             if b not in cluster_member:
                 node_member.append(b)
-        # print("nodes AFTER : "+str(len(node_member)))
-        # print("Cluster member : "+str(len(cluster_member)))
+        print("nodes AFTER : "+str(len(node_member)))
+        print("Cluster member : "+str(len(cluster_member)))
+        
 
     return cluster_member, node_member, dead
 
@@ -189,6 +191,7 @@ def nodes_select(cluster_member, node_member, pkt_control, elec_tran,\
         for k in range(len(cluster_select)):
             log_max = max(b for (a, b) in cluster_select[k])
             max_dis.append([k, log_max])
+        print(max_dis)
 
     return node_select, cluster_member, node_member, dead, data_distance, max_dis
 
