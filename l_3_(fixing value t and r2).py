@@ -184,12 +184,11 @@ def nodes_select(cluster_member, node_member, pkt_control, elec_tran,\
                 cluster_select.append(log)
                 log = []
                 log.append(j)
-                check_c += 1   
+                check_c += 1
+        cluster_select.append(log)
         for k in range(len(cluster_select)):
             log_max = max(b for (a, b) in cluster_select[k])
             max_dis.append([k, log_max])
-        print(max_dis)
-
 
     return node_select, cluster_member, node_member, dead, data_distance, max_dis
 
@@ -305,7 +304,7 @@ def start():
     fs = 10 * (10 ** (-12))  # 10 picoj
     mpf = 0.012 * (10 ** (-12))  # 0.012 picoj
     d_threshold = 87  # **********************
-    r1 = 15 # meter
+    r1 = 30 # meter
     r2 = r1*((2*math.log(10))**(0.5)) # meter
 
     if choose == 0:
