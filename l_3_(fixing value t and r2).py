@@ -172,9 +172,9 @@ def nodes_select(cluster_member, node_member, pkt_control, elec_tran,\
                     what_cluster = -1
             node_select.append([what_cluster, shotest])
             log_c_select.append([what_cluster, shotest])
-        log_c_select = sorted(log_c_select, key=lambda cluster: cluster[0])
-
+        
         # collect maximum range of each cluster can get
+        log_c_select = sorted(log_c_select, key=lambda cluster: cluster[0])
         cluster_select = []
         log = []
         max_dis = []
@@ -191,13 +191,8 @@ def nodes_select(cluster_member, node_member, pkt_control, elec_tran,\
         for k in range(len(cluster_select)):
             log_max = max(b for (a, b) in cluster_select[k])
             max_dis.append([k, log_max])
-        print(max_dis)
 
     return node_select, cluster_member, node_member, dead, data_distance, max_dis
-
-
-# def optimize_t(node_select, cluster_member, node_member):
-
 
 
 def data_to_cluster(cluster_member, node_member, node_select, pkt_data, elec_tran,\
@@ -246,6 +241,28 @@ def data_to_cluster(cluster_member, node_member, node_select, pkt_data, elec_tra
         ##    for i in node_member:print(i)
 
     return cluster_member, node_member, dead
+
+
+
+def optimize_t(cluster_member, node_member, node_select, max_dis, r1):
+
+    for k in cluster_member:
+        if max_dis[1] > r1:
+            k[3] =  k[3] + 0.1
+        else:
+            k[3] =  k[3] - 0.1
+
+    for i in max_dis:
+        for j in range(len(node_member)):
+            if node_select[j][0] == i[0]:
+                if i[1] > r1:
+                    node_member[j][3] = node_member[j][3] + 0.1
+                else:
+                    node_member[j][3] = node_member[j][3] - 0.1
+    
+    return cluster_member, node_member
+
+
 
 
 def back_to_nodes(cluster_member, node_member):
@@ -460,7 +477,6 @@ def start():
             data_to_cluster(cluster_member, node_member, node_select, \
                             pkt_data, elec_tran, elec_rec, fs, mpf, \
                             d_threshold, station_member,dead)
-
         
         plot_graph(cluster_member, node_member, cch, station_member, r1,r2,data_distance)
 
