@@ -117,8 +117,7 @@ def distance_candidate(node_member, cch, pkt_control, elec_tran,\
             if b not in cluster_member:
                 node_member.append(b)
         print("nodes AFTER : "+str(len(node_member)))
-        print("Cluster member : "+str(len(cluster_member)))
-        
+        print("Cluster member : "+str(len(cluster_member))) 
 
     return cluster_member, node_member, dead
 
@@ -191,6 +190,9 @@ def nodes_select(cluster_member, node_member, pkt_control, elec_tran,\
         for k in range(len(cluster_select)):
             log_max = max(b for (a, b) in cluster_select[k])
             max_dis.append([k, log_max])
+    else:
+        node_select = []
+        max_dis = []
 
     return node_select, cluster_member, node_member, dead, data_distance, max_dis
 
@@ -246,32 +248,40 @@ def data_to_cluster(cluster_member, node_member, node_select, pkt_data, elec_tra
 
 def optimize_t(cluster_member, node_member, node_select, max_dis, r1):
 
-    for k in cluster_member:
-        if max_dis[1] > r1:
-            k[3] =  k[3] + 0.1
+    
+    for k in range(len(cluster_member)):
+        if max_dis[k][1] > r1 and cluster_member[k][3] <= 1 and cluster_member[k][3] >= 0:
+            cluster_member[k][3] =  round(cluster_member[k][3] + 0.1,1)
         else:
-            k[3] =  k[3] - 0.1
+            cluster_member[k][3] =  round(cluster_member[k][3] - 0.1,1)
 
     for i in max_dis:
         for j in range(len(node_member)):
             if node_select[j][0] == i[0]:
-                if i[1] > r1:
-                    node_member[j][3] = node_member[j][3] + 0.1
+                if i[1] > r1 and node_member[j][3] <= 1 and node_member[j][3] >= 0:
+                    node_member[j][3] = round(node_member[j][3] + 0.1,1)
                 else:
-                    node_member[j][3] = node_member[j][3] - 0.1
+                    node_member[j][3] = round(node_member[j][3] - 0.1,1)
     
     return cluster_member, node_member
 
 
 
 
-def back_to_nodes(cluster_member, node_member):
+def back_to_nodes(cluster_member, node_member, max_dis, r1):
     """ before next loop all cluster switch back to node_member """
     for cluster in cluster_member:
-        node_member.append(cluster)
+        if cluster not in node_member:
+            node_member.append(cluster)
     cluster_member = []
 ##    print("****************** ALL back to nodes ***")
 ##    print("nodes : "+str(len(node_member)))
+    print("r1 : "+str(r1))
+    for j in max_dis:
+        print(j)
+    print("*************************")
+    for i in node_member:
+        print(i)
 
     return cluster_member, node_member
 
@@ -304,7 +314,8 @@ def start():
     print("Choose 0 set new input")
     print("Choose 1 loop with fixed T-value")
     print("Choose 2 loop with dynamic T-value")
-    print("Choose 3 get 1 lap")
+    print("Choose 3 get 1 lap with fixed T-value")
+    print("Choose 4 get 1 lap with dynamic T-value")
     choose = int(input("choose : "))
     print(" ")
     print("*************************************")
@@ -431,6 +442,10 @@ def start():
                                 pkt_data, elec_tran, elec_rec, fs, mpf, \
                                 d_threshold, station_member,dead)
 
+
+            cluster_member, node_member = \
+                optimize_t(cluster_member, node_member, node_select, max_dis, r1)
+            
             
             #plot_graph(cluster_member, node_member, cch, station_member, r1,r2,data_distance)
 
@@ -477,7 +492,58 @@ def start():
             data_to_cluster(cluster_member, node_member, node_select, \
                             pkt_data, elec_tran, elec_rec, fs, mpf, \
                             d_threshold, station_member,dead)
-        
+
+
         plot_graph(cluster_member, node_member, cch, station_member, r1,r2,data_distance)
+    
+
+        cluster_member, node_member = \
+                back_to_nodes(cluster_member, node_member)
+
+    elif choose == 4:
+        dead = 0
+        count_lap = 0
+        station_member, node_member, data_distance = [], [], []
+        with open("station_member.csv", 'r') as csvnew:
+            read = csv.reader(csvnew)
+            for line1 in read:
+                station_member.append(list(map(int, line1)))
+        with open("node_member.csv", 'r') as csvnew:
+            read = csv.reader(csvnew)
+            for line2 in read:
+                node_member.append(list(map(float, line2)))
+        with open("len_nodes.txt", "r") as text_file:
+                len_nodes = int(text_file.read())
+
+        cch, node_member = \
+            random_cch(node_member, len_nodes)
+        
+
+        cluster_member, node_member ,dead = \
+            distance_candidate(node_member, cch, pkt_control, elec_tran,\
+                                elec_rec, fs, mpf, d_threshold, r1,dead)
+
+
+        node_select, cluster_member, node_member, dead , data_distance, max_dis = \
+            nodes_select(cluster_member, node_member, pkt_control, \
+                            elec_tran, elec_rec, fs, mpf, d_threshold,\
+                            r2, data_distance , dead)
+
+
+        cluster_member, node_member ,dead = \
+            data_to_cluster(cluster_member, node_member, node_select, \
+                            pkt_data, elec_tran, elec_rec, fs, mpf, \
+                            d_threshold, station_member,dead)
+        
+
+        cluster_member, node_member = \
+                optimize_t(cluster_member, node_member, node_select, max_dis, r1)
+
+
+        plot_graph(cluster_member, node_member, cch, station_member, r1,r2,data_distance)
+
+
+        cluster_member, node_member = \
+                back_to_nodes(cluster_member, node_member, max_dis, r1)
 
 start()
