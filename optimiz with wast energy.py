@@ -267,17 +267,17 @@ def optimize_t(cluster_member, node_member, node_select, max_dis, r1,pkt_data,\
     
     if dead == 0:
             # Cluster receive all pkt data from nodes_member
-        for distance in max_dis:
+        for distance in range(len(max_dis)):
             for node in range(len(node_member)):
-                print('--------0',node_select[node][0], distance[0])
-                if node_select[node][0] == distance[0]:
+                # print('--------0',node_select[node][0], max_dis[distance][0])
+                if node_select[node][0] == max_dis[distance][0]:
                     # Send pkt data [node-->cluster]
-                    if  distance[1] > r1 and node_member[node][3] <= 1 and node_member[node][3] >= 0:
-                        wast = ((elec_tran+(fs*(distance[1]**2)))*pkt_control)
+                    if  max_dis[distance][1] > r1 and node_member[node][3] <= 1 and node_member[node][3] >= 0:
+                        wast = ((elec_tran+(fs*(max_dis[distance][1]**2)))*pkt_control)
                         if node_member[node][2]-wast  > 0:
                             node_member[node][2] = node_member[node][2] - wast
                             node_member[node][3] = round(node_member[node][3] - 0.1,1)
-                            cluster_member[distance][0] =round( cluster_member[distance][0] -  0.1,1)
+                            cluster_member[distance][3] =round( cluster_member[distance][3] -  0.1,1)
                             
                         else:
                             dead = 1
@@ -287,11 +287,11 @@ def optimize_t(cluster_member, node_member, node_select, max_dis, r1,pkt_data,\
                         if node_member[node][2]-wast  > 0:
                             node_member[node][2] = node_member[node][2] - wast
                             node_member[node][3] = round(node_member[node][3] + 0.1,1)
-                            cluster_member[distance][0] =round( cluster_member[distance][0] +  0.1,1)
+                            cluster_member[distance][3] =round( cluster_member[distance][3] +  0.1,1)
                         else:
                             dead = 1
                     # Receive pkt data
-                    cluster_member[distance][1] = cluster_member[distance][1] - (elec_rec*pkt_data)
+                    cluster_member[distance][2] = cluster_member[distance][2] - (elec_rec*pkt_data)
                     
     
     return cluster_member, node_member, dead
@@ -486,6 +486,9 @@ def start():
 
             cluster_member, node_member = \
                 back_to_nodes(cluster_member, node_member, max_dis, r1)
+
+            print("node member : "+str(len(node_member)))
+            print("cluster member : "+str(len(cluster_member)))
 
             count_lap += 1
             if dead == 1:
