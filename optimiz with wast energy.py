@@ -495,8 +495,8 @@ def start():
                                 d_threshold, station_member,dead)
 
             cluster_member, node_member, dead = \
-                optimize_t(cluster_member, node_member, node_select, max_dis, r1,\
-               pkt_control, elec_tran,elec_rec, fs, mpf, d_threshold,dead,pkt_data)
+                optimize_t(cluster_member, node_member, node_select, max_dis, r1,pkt_data,\
+               pkt_control, elec_tran,elec_rec, fs, mpf, d_threshold,dead)
             
             
             #plot_graph(cluster_member, node_member, cch, station_member, r1,r2,data_distance)
