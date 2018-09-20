@@ -3,7 +3,6 @@ import math
 import matplotlib.pyplot as plt
 import csv
 
-
 def base_station(num_base, pos_base):
     """input base station point"""
     # Set POS base station here

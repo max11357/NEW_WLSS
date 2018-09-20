@@ -246,24 +246,54 @@ def data_to_cluster(cluster_member, node_member, node_select, pkt_data, elec_tra
 
 
 
-def optimize_t(cluster_member, node_member, node_select, max_dis, r1):
+def optimize_t(cluster_member, node_member, node_select, max_dis, r1,\
+               pkt_control, elec_tran,elec_rec, fs, mpf, d_threshold,dead):
 
+##    
+##    for k in range(len(cluster_member)):
+##        if max_dis[k][1] > r1 and cluster_member[k][3] <= 1 and cluster_member[k][3] >= 0:
+##            cluster_member[k][3] =  round(cluster_member[k][3] - 0.1,1)
+##        elif max_dis[k][1] < r1 and cluster_member[k][3] <= 1 and cluster_member[k][3] >= 0:
+##            cluster_member[k][3] =  round(cluster_member[k][3] + 0.1,1)
+##        else:
+##            cluster_member[k][3] =  round(cluster_member[k][3] - 0.1,1)
+    if dead == 0:
+            # Cluster receive all pkt data from nodes_member
+        for distance in max_dis:
+            for node in range(len(node_member)):
+                if node_select[node][0] == distance:
+                    # Send pkt data [node-->cluster]
+                    if  distance[1] > r1 and node_member[node][3] <= 1 and node_member[node][3] >= 0 and distance < d_threshold:
+                        wast = ((elec_tran+(fs*(distance**2)))*pkt_control)
+                        if node_member[node][2]-wast  > 0:
+                            node_member[node][2] = node_member[node][2] - wast
+                            node_member[node][3] = round(node_member[node][3] + 0.1,1)
+                        else:
+                            dead = 1
+                            
+                    else :
+                        wast = ((elec_tran+(mpf*(node_select[node][1]**4)))*pkt_data)
+                        if node_member[node][2]-wast  > 0:
+                            node_member[node][2] = node_member[node][2] - wast
+                            node_member[node][3] = round(node_member[node][3] + 0.1,1)
+                        else:
+                            dead = 1
+                    # Receive pkt data
+                    cluster_member[node_select[node][0]][2] = cluster_member[node_select[node][0]][2] - (elec_rec*pkt_data)
+##
+##if dead == 0:
+##    for distance in max_dis:
+##        for j in range(len(node_member)):
+##            if node_select[j][0] == i[0]:
+##                if distance[1] > r1 and node_member[j][3] <= 1 and\
+##                   node_member[j][3] >= 0 and distance < d_threshold:
+##                    wast = ((elec_tran+(fs*(distance**2)))*pkt_control)
+##                    
+##                    node_member[j][3] = round(node_member[j][3] + 0.1,1)
+##                else:
+##                    node_member[j][3] = round(node_member[j][3] - 0.1,1)
     
-    for k in range(len(cluster_member)):
-        if max_dis[k][1] > r1 and cluster_member[k][3] <= 1 and cluster_member[k][3] >= 0:
-            cluster_member[k][3] =  round(cluster_member[k][3] + 0.1,1)
-        else:
-            cluster_member[k][3] =  round(cluster_member[k][3] - 0.1,1)
-
-    for i in max_dis:
-        for j in range(len(node_member)):
-            if node_select[j][0] == i[0]:
-                if i[1] > r1 and node_member[j][3] <= 1 and node_member[j][3] >= 0:
-                    node_member[j][3] = round(node_member[j][3] + 0.1,1)
-                else:
-                    node_member[j][3] = round(node_member[j][3] - 0.1,1)
-    
-    return cluster_member, node_member
+    return cluster_member, node_member, dead
 
 
 
@@ -443,8 +473,9 @@ def start():
                                 d_threshold, station_member,dead)
 
 
-            cluster_member, node_member = \
-                optimize_t(cluster_member, node_member, node_select, max_dis, r1)
+            cluster_member, node_member, dead = \
+                optimize_t(cluster_member, node_member, node_select, max_dis, r1,\
+               pkt_control, elec_tran,elec_rec, fs, mpf, d_threshold,dead)
             
             
             #plot_graph(cluster_member, node_member, cch, station_member, r1,r2,data_distance)

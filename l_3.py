@@ -3,7 +3,6 @@ import math
 import matplotlib.pyplot as plt
 import csv
 
-
 def base_station(num_base, pos_base):
     """input base station point"""
     # Set POS base station here
@@ -45,15 +44,21 @@ def random_nodes(width, height, station_member, set_energy, density):
 
 def random_cch(node_member, t_predefine, len_nodes):
     """random cch from amount Node"""
+##    cch = []
+##    num_candidate = math.ceil(t_predefine*len_nodes)
+##    # random candidate cluster
+##    count = 0
+##    while len(cch) != num_candidate:
+##        c_cluster = node_member[rd.randint(0, len(node_member) - 1)]
+##        cch.append(c_cluster)
+##        node_member.remove(c_cluster)
+##        count += 1
+    
     cch = []
-    num_candidate = math.ceil(t_predefine*len_nodes)
-    # random candidate cluster
-    count = 0
-    while len(cch) != num_candidate:
-        c_cluster = node_member[rd.randint(0, len(node_member) - 1)]
-        cch.append(c_cluster)
-        node_member.remove(c_cluster)
-        count += 1
+    print(t_predefine)
+    for i in node_member:
+        t = rd.randrange(1,20)/100
+        print(i[3])
     return cch, node_member
 
 
@@ -274,7 +279,6 @@ def start():
     width = 100 # meter
     height = 100 # meter
     density = float(0.0125)
-    t_predefine =  float(0.09)
     num_base = 1
     pos_base = "0,0"
     set_energy = 1 # set energy = 1 Joule
