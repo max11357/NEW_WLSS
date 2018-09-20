@@ -262,6 +262,9 @@ def optimize_t(cluster_member, node_member, node_select, max_dis, r1,pkt_data,\
 ##                    node_member[j][3] = round(node_member[j][3] + 0.1,1)
 ##                else:
 ##                    node_member[j][3] = round(node_member[j][3] - 0.1,1)
+
+
+    
     if dead == 0:
             # Cluster receive all pkt data from nodes_member
         for distance in max_dis:
