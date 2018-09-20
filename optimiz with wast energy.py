@@ -247,21 +247,21 @@ def data_to_cluster(cluster_member, node_member, node_select, pkt_data, elec_tra
 
 
 def optimize_t(cluster_member, node_member, node_select, max_dis, r1,pkt_data,\
-               pkt_control, elec_tran,elec_rec, fs, mpf, d_threshold,dead):
+               pkt_control, elec_tran,elec_rec, fs, mpf, d_threshold, dead):
 
-##    for k in range(len(cluster_member)):
-##        if max_dis[k][1] > r1 and cluster_member[k][3] <= 1 and cluster_member[k][3] >= 0:
-##            cluster_member[k][3] =  round(cluster_member[k][3] + 0.1,1)
-##        else:
-##            cluster_member[k][3] =  round(cluster_member[k][3] - 0.1,1)
-##
-##    for i in max_dis:
-##        for j in range(len(node_member)):
-##            if node_select[j][0] == i[0]:
-##                if i[1] > r1 and node_member[j][3] <= 1 and node_member[j][3] >= 0:
-##                    node_member[j][3] = round(node_member[j][3] + 0.1,1)
-##                else:
-##                    node_member[j][3] = round(node_member[j][3] - 0.1,1)
+#    for k in range(len(cluster_member)):
+#        if max_dis[k][1] > r1 and cluster_member[k][3] <= 1 and cluster_member[k][3] >= 0:
+#            cluster_member[k][3] =  round(cluster_member[k][3] + 0.1,1)
+#        else:
+#            cluster_member[k][3] =  round(cluster_member[k][3] - 0.1,1)
+
+#    for i in max_dis:
+#        for j in range(len(node_member)):
+#            if node_select[j][0] == i[0]:
+#                if i[1] > r1 and node_member[j][3] <= 1 and node_member[j][3] >= 0:
+#                    node_member[j][3] = round(node_member[j][3] + 0.1,1)
+#                else:
+#                    node_member[j][3] = round(node_member[j][3] - 0.1,1)
 
 
     
@@ -449,8 +449,10 @@ def start():
         
         while True:
             
+            
             with open("len_nodes.txt", "r") as text_file:
                 len_nodes = int(text_file.read())
+     
 
             
             cch, node_member = \
@@ -460,7 +462,7 @@ def start():
             cluster_member, node_member ,dead = \
                 distance_candidate(node_member, cch, pkt_control, elec_tran,\
                                    elec_rec, fs, mpf, d_threshold, r1,dead)
-  
+
 
             node_select, cluster_member, node_member, dead, data_distance, max_dis = \
                 nodes_select(cluster_member, node_member, pkt_control, \
@@ -475,8 +477,8 @@ def start():
 
 
             cluster_member, node_member, dead = \
-                optimize_t(cluster_member, node_member, node_select, max_dis, r1,\
-               pkt_control, elec_tran,elec_rec, fs, mpf, d_threshold,dead,pkt_data)
+                optimize_t(cluster_member, node_member, node_select, max_dis, r1,pkt_data,\
+                            pkt_control, elec_tran,elec_rec, fs, mpf, d_threshold, dead)
             
             
             #plot_graph(cluster_member, node_member, cch, station_member, r1,r2,data_distance)
@@ -484,11 +486,12 @@ def start():
 
             cluster_member, node_member = \
                 back_to_nodes(cluster_member, node_member, max_dis, r1)
-            
+
             count_lap += 1
             if dead == 1:
                 print("LAP : "+ str(count_lap))
                 break;
+            
 
     elif choose == 3:
         dead = 0
