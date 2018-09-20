@@ -41,6 +41,11 @@ def random_nodes(width, height, station_member, set_energy, density, t_predefine
 
     return node_member, len_nodes
 
+def predefine(node_member, t_predefine):
+    for i in node_member:
+        i[3] = t_predefine
+    return node_member
+    
 
 def random_cch(node_member, len_nodes):
     """random cch from amount Node"""
@@ -116,8 +121,8 @@ def distance_candidate(node_member, cch, pkt_control, elec_tran,\
         for b in cch:
             if b not in cluster_member:
                 node_member.append(b)
-        print("nodes AFTER : "+str(len(node_member)))
-        print("Cluster member : "+str(len(cluster_member))) 
+##        print("nodes AFTER : "+str(len(node_member)))
+##        print("Cluster member : "+str(len(cluster_member))) 
 
     return cluster_member, node_member, dead
 
@@ -300,15 +305,12 @@ def optimize_t(cluster_member, node_member, node_select, max_dis, r1,pkt_data,\
 def back_to_nodes(cluster_member, node_member, max_dis, r1, t_predefine):
     """ before next loop all cluster switch back to node_member """
     data =[]
-    print('------------------------------',t_predefine)
     for j in max_dis:
-        data.append([cluster_member[j[0]][3], j[1]])
-        print('!!!!!!!!!!!!!!',cluster_member[j[0]][3])
+        data.append([j[1], cluster_member[j[0]][3]])
     with open('data t '+str(t_predefine)+' and r0.csv', 'a', newline='') as csvnew:
         write = csv.writer(csvnew)
         for line1 in data:
             write.writerow(line1)
-    print(len(cluster_member))
     for cluster in cluster_member:
         if cluster not in node_member:
             node_member.append(cluster)
@@ -333,7 +335,6 @@ def back_to_nodes_dynamic(cluster_member, node_member, max_dis, r1, t_predefine)
         write = csv.writer(csvnew)
         for line1 in data:
             write.writerow(line1)
-    print(len(cluster_member))
     for cluster in cluster_member:
         if cluster not in node_member:
             node_member.append(cluster)
@@ -415,7 +416,6 @@ def start():
     elif choose == 1:
         for i in range(1,10):
             t_predefine = i/10
-            print(t_predefine)
             dead = 0
             count_lap = 0
             station_member, node_member, data_distance = [], [], []
@@ -430,11 +430,9 @@ def start():
                     node_member.append(list(map(float, line2)))
             
             while True:
-                print('********',t_predefine)
                 with open("len_nodes.txt", "r") as text_file:
                     len_nodes = int(text_file.read())
-                dead += 1
-                
+                node_member = predefine(node_member, t_predefine)
                 cch, node_member = \
                     random_cch(node_member, len_nodes)
                 
