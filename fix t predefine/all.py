@@ -278,8 +278,8 @@ def optimize_t(cluster_member, node_member, node_select, max_dis, r1,pkt_data,\
                         wast = ((elec_tran+(fs*(distance[1]**2)))*pkt_control)
                         if cluster_member[distance[0]][2]-wast  > 0:
                             cluster_member[distance[0]][2] = cluster_member[distance[0]][2] - wast
-                            node_member[node][3] = round(node_member[node][3] - 0.1,1)
-                            cluster_member[distance[0]][3] =round(cluster_member[distance[0]][3] -  0.1,1)
+                            node_member[node][3] = round(node_member[node][3] + 0.1,1)
+                            cluster_member[distance[0]][3] =round(cluster_member[distance[0]][3] + 0.1,1)
                             
                         else:
                             dead = 1
@@ -288,8 +288,8 @@ def optimize_t(cluster_member, node_member, node_select, max_dis, r1,pkt_data,\
                        wast = ((elec_tran+(fs*(distance[1]**2)))*pkt_control)
                        if cluster_member[distance[0]][2]-wast  > 0:
                            cluster_member[distance[0]][2] = cluster_member[distance[0]][2] - wast
-                           node_member[node][3] = round(node_member[node][3] + 0.1,1)
-                           cluster_member[distance[0]][3] =round(cluster_member[distance[0]][3] +  0.1,1)
+                           node_member[node][3] = round(node_member[node][3] - 0.1,1)
+                           cluster_member[distance[0]][3] =round(cluster_member[distance[0]][3] - 0.1,1)
 
                        else:
                             dead = 1
@@ -307,6 +307,7 @@ def back_to_nodes(cluster_member, node_member, max_dis, r1, t_predefine):
     data =[]
     for j in max_dis:
         data.append([j[1], cluster_member[j[0]][3]])
+        print(j[1], cluster_member[j[0]][3])
     with open('data t '+str(t_predefine)+' and r0.csv', 'a', newline='') as csvnew:
         write = csv.writer(csvnew)
         for line1 in data:

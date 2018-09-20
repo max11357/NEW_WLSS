@@ -10,10 +10,15 @@ def plot_data():
             read = csv.reader(csvnew)
             for line1 in read:
                 data.append(list(map(float, line1)))
-        testList2 = [(elem1, log(elem2)) for elem1, elem2 in data]
-        plt.scatter(*zip(*testList2))
+        testList2 = [(elem2, elem1) for elem1, elem2 in data ]
         plt.plot(*zip(*testList2))
         plt.show()
-                
-    print(data)
+##    with open('data t dynamic and r0.csv', 'r') as csvnew:
+##            read = csv.reader(csvnew)
+##            for line1 in read:
+##                data.append(list(map(float, line1)))
+##        testList2 = [(elem1, log(elem2)) for elem1, elem2 in data]
+##        plt.scatter(*zip(*testList2))
+##        plt.plot(*zip(*testList2))
+##        plt.show()
 plot_data()
