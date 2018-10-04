@@ -397,10 +397,10 @@ def start():
                 start()
 
             elif int(choose) == 1:
+           
                 dead = 0
                 count_lap = 0
                 station_member, node_member_o, data_distance = [], [], []
-                
                 with open("station_member.csv", 'r') as csvnew:
                     read = csv.reader(csvnew)
                     for line1 in read:
@@ -426,7 +426,6 @@ def start():
                     #         print("N",k)
                     # else:
                     #     print("PASS")
-
                     cluster_member, node_member, cch_last , dead = \
                         distance_candidate(node_member, cch, pkt_control, \
                         elec_tran, elec_rec, fs, mpf, d_threshold, r1,dead)
@@ -467,7 +466,6 @@ def start():
                     #     print("node_member :",len(node_member))
                     # else:
                     #     print("PASS")
-                    
 
                     # plot_graph(cluster_member, node_member, cch, station_member, \
                     # r1, r2, data_distance)
@@ -492,12 +490,12 @@ def start():
             
             elif int(choose) == 2:
                 
-                lap = int(input("set lap : "))
-                set_t_value = input("set amount of T-Values :").split(",")
+                lap = int(10)
+                set_t_value = "0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9".split(",")
                 
-                while lap != len(set_t_value):
-                    print("!!! Valid amount of T-Values !!!")
-                    set_t_value = input("set amount of T-Values :").split(",")
+##                while lap != len(set_t_value):
+##                    print("!!! Valid amount of T-Values !!!")
+##                    set_t_value = input("set amount of T-Values :").split(",")
 
                 for t in set_t_value:
                     t_predefine = float(t)
@@ -592,11 +590,11 @@ def start():
 
                         count_lap += 1
                         if dead == 1:
-                            print(" ")
+##                            print(" ")
                             print("LAP : "+ str(count_lap))
-                            print("[Nodes]")
-                            for i in node_member:
-                                print(i)
+##                            print("[Nodes]")
+##                            for i in node_member:
+##                                print(i)
                             break;
                         # print("****************************************")
             
