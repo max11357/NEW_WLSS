@@ -375,6 +375,7 @@ def start(choose, i):
     decrease_t = 0.01
     increase_t = 0.01
 
+
     try:
         if choose.isdigit():
             if int(choose) == 0:
@@ -387,7 +388,6 @@ def start(choose, i):
                     random_nodes(width, height, station_member, set_energy, density, t_predefine)
                 
                 
-                start()
 
             elif int(choose) == 1:
            
@@ -599,7 +599,11 @@ def start(choose, i):
         start()
 
 def loop():
+    nw = int(input("set new values press 0 enter :"))
+    if nw == 0:
+        start(str(nw), nw)
+    
     for i in range(1,201):
-        start('2',i)
-##        start('3',i)
+        # start('2',i)
+        start('3',i)
 loop()
