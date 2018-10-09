@@ -604,6 +604,6 @@ def loop():
         start(str(nw), nw)
     
     for i in range(1,201):
-        # start('2',i)
-        start('3',i)
+        start('2',i)
+        # start('3',i)
 loop()
