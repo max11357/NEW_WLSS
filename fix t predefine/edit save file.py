@@ -409,6 +409,7 @@ def start(choose, i):
                             
                     cch, node_member = \
                         random_cch(node_member_o, len_nodes)
+                    
                     cluster_member, node_member, cch_last , dead = \
                         distance_candidate(node_member, cch, pkt_control, \
                         elec_tran, elec_rec, fs, mpf, d_threshold, r1,dead)
@@ -604,6 +605,6 @@ def loop():
         start(str(nw), nw)
     
     for i in range(1,201):
-        start('2',i)
+        start('2', i)
         # start('3',i)
 loop()

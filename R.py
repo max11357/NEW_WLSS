@@ -15,6 +15,7 @@ def base_station(num_base, pos_base):
         write = csv.writer(csvnew)
         for line in station_member:
             write.writerow(line)
+
     return station_member
 
 
@@ -40,10 +41,13 @@ def random_nodes(width, height, station_member, set_energy, density, t_predefine
 
     return node_member_o, len_nodes
 
+
 def predefine(node_member_o, t_predefine):
     for i in node_member_o:
         i[3] = t_predefine
+
     return node_member_o
+
 
 def random_cch(node_member_o, len_nodes):
     """random cch from amount Node"""
@@ -61,10 +65,8 @@ def random_cch(node_member_o, len_nodes):
     return cch, node_member
 
 
-def distance_candidate(node_member, cch, pkt_control, elec_tran,\
-                       elec_rec, fs, mpf, d_threshold, r1, dead):
-    cluster_member = []
-    dont_check = []
+def e_distance_candidate(cch, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, dead):
+    
     if dead == 0:
         # Calculate all energy use to send/Receive pkt control
         for main in range(len(cch)):
@@ -73,19 +75,28 @@ def distance_candidate(node_member, cch, pkt_control, elec_tran,\
                                     (cch[main][1] - cch[other][1])**2)
                 # Send pkt control
                 if  distance < d_threshold:
-                    wastee = (elec_tran + (fs*(distance**2)))*pkt_control
-                    if cch[main][2] - wastee > 0:
-                        cch[main][2] = cch[main][2] - wastee
+                    waste = (elec_tran + (fs*(distance**2)))*pkt_control
+                    if cch[main][2] - waste > 0:
+                        cch[main][2] = cch[main][2] - waste
                     else:
                         dead = 1
                 elif distance >= d_threshold :
-                    wastee = ((elec_tran + (mpf*(distance**4)))*pkt_control)
-                    if cch[main][2] - wastee  > 0:
-                        cch[main][2] = cch[main][2] - wastee
+                    waste = ((elec_tran + (mpf*(distance**4)))*pkt_control)
+                    if cch[main][2] - waste  > 0:
+                        cch[main][2] = cch[main][2] - waste
                     else:
                         dead = 1
                 # Receive pkt control
                 cch[other][2] = cch[other][2] - (elec_rec*pkt_control)
+
+    return dead, cch
+
+
+def distance_candidate(cch, r1, node_member, dead):
+    cluster_member = []
+    dont_check = []
+    cch_last = []
+    if dead == 0:
         # sort by energy [from most to least]
         for lap in range(len(cch)-1,0,-1):
             for j in range(lap):
@@ -103,7 +114,7 @@ def distance_candidate(node_member, cch, pkt_control, elec_tran,\
                                     (cch[main][1] - cch[other][1])**2)
                 log_dis.append(distance)
             for c in range(len(log_dis)):
-                if log_dis[c] <= (r1*2) and log_dis[c] != 0:
+                if log_dis[c] <= r1 and log_dis[c] != 0:
                     if cch[main][2] >= cch[c][2]:
                         dont_check.append(cch[c][:2])
                         dont_check_in.append(cch[c][:2])
@@ -120,15 +131,11 @@ def distance_candidate(node_member, cch, pkt_control, elec_tran,\
             if b not in cluster_member:
                 node_member.append(b)
         cch_last = [i for i in cch if i not in node_member and i not in cluster_member]
+    
+    return cch_last, cluster_member, node_member, dead
 
-    return cluster_member, node_member, cch_last , dead
 
-
-def nodes_select(cluster_member, node_member, pkt_control, elec_tran,\
-                 elec_rec, fs, mpf, d_threshold, r2, data_distance, dead):
-    max_dis = []
-    node_select = []
-    log_c_select = []
+def e_node_selected(cluster_member, node_member, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, dead):
     if dead == 0:
         # Calculate all energy use to send/Receive pkt control
         for node in range(len(node_member)):
@@ -137,27 +144,36 @@ def nodes_select(cluster_member, node_member, pkt_control, elec_tran,\
                                     (node_member[node][1] - cluster_member[cluster][1])**2)
                 # Send pkt control
                 if  distance < d_threshold:
-                    wastee = ((elec_tran + (fs*(distance**2)))*pkt_control)
-                    if cluster_member[cluster][2] - wastee > 0 : 
-                        cluster_member[cluster][2] = cluster_member[cluster][2] - wastee
+                    waste = ((elec_tran + (fs*(distance**2)))*pkt_control)
+                    if cluster_member[cluster][2] - waste > 0 : 
+                        cluster_member[cluster][2] = cluster_member[cluster][2] - waste
                     else:
                         dead = 1
                 elif distance >= d_threshold :
-                    wastee = ((elec_tran + (mpf*(distance**4)))*pkt_control)
-                    if cluster_member[cluster][2] - wastee  > 0:
-                        cluster_member[cluster][2] = cluster_member[cluster][2] -wastee
+                    waste = ((elec_tran + (mpf*(distance**4)))*pkt_control)
+                    if cluster_member[cluster][2] - waste  > 0:
+                        cluster_member[cluster][2] = cluster_member[cluster][2] - waste
                     else:
                         dead = 1
                 # Receive pkt control
                 node_member[node][2] = node_member[node][2] - (elec_rec*pkt_control)
-        # Choose who should be my cluster member
+
+    return cluster_member, node_member, dead
+
+
+def node_selected(cluster_member, node_member, r2, data_distance, dead):
+    max_dis = []
+    node_select = []
+    log_c_select = []
+    if dead == 0:
+        # Cluster choose who's my member
         for node in range(len(node_member)):
             shotest = -1  # shortest distance
             what_cluster = -1  # what cluster?
             check = 0
             for cluster in range(len(cluster_member)):
                 distance = math.sqrt((node_member[node][0] - cluster_member[cluster][0])**2 +
-                                    (node_member[node][1] - cluster_member[cluster][1])**2)
+                                     (node_member[node][1] - cluster_member[cluster][1])**2)
                 if distance <= r2:
                     if shotest is -1:
                         shotest = distance
@@ -173,7 +189,7 @@ def nodes_select(cluster_member, node_member, pkt_control, elec_tran,\
                     what_cluster = -1
             node_select.append([what_cluster, shotest])
             log_c_select.append([what_cluster, shotest])
-        # collect maximum range of each cluster can get
+        # collect maximum range of each cluster can get from they node member
         log_c_select = sorted(log_c_select, key=lambda cluster: cluster[0])
         cluster_select = []
         log = []
@@ -191,11 +207,10 @@ def nodes_select(cluster_member, node_member, pkt_control, elec_tran,\
         for k in range(len(cluster_select)):
             log_max = max(b for (a, b) in cluster_select[k])
             max_dis.append([k, log_max])
+    
+    return data_distance, node_select, max_dis, log_c_select, dead
 
-    return node_select, cluster_member, node_member, dead, data_distance, max_dis
-
-
-def data_to_cluster(cluster_member, node_member, node_select, pkt_data, elec_tran,\
+def e_data_cluster(cluster_member, node_member, node_select, pkt_data, elec_tran,\
                     elec_rec, fs, mpf, d_threshold, dead):
     if dead == 0:
         # Cluster receive all pkt data from nodes_member
@@ -203,15 +218,15 @@ def data_to_cluster(cluster_member, node_member, node_select, pkt_data, elec_tra
             if node_select[node][0] != -1 or node_select[node][1] != -1:
                 # Send pkt data [node-->cluster]
                 if  node_select[node][1] < d_threshold:
-                    wastee = ((elec_tran + (fs*(node_select[node][1]**2)))*pkt_data)
-                    if node_member[node][2] - wastee  > 0:
-                        node_member[node][2] = node_member[node][2] - wastee
+                    waste = ((elec_tran + (fs*(node_select[node][1]**2)))*pkt_data)
+                    if node_member[node][2] - waste  > 0:
+                        node_member[node][2] = node_member[node][2] - waste
                     else:
                         dead = 1
                 elif node_select[node][1] >= d_threshold :
-                    wastee = ((elec_tran + (mpf*(node_select[node][1]**4)))*pkt_data)
-                    if node_member[node][2] - wastee  > 0:
-                        node_member[node][2] = node_member[node][2] - wastee
+                    waste = ((elec_tran + (mpf*(node_select[node][1]**4)))*pkt_data)
+                    if node_member[node][2] - waste  > 0:
+                        node_member[node][2] = node_member[node][2] - waste
                     else:
                         dead = 1
                 # Receive pkt data
@@ -220,7 +235,7 @@ def data_to_cluster(cluster_member, node_member, node_select, pkt_data, elec_tra
     return cluster_member, node_member, dead
 
 
-def cluster_to_bs(cluster_member, station_member, pkt_data, elec_tran, elec_rec, fs, mpf, \
+def e_cluster_bs(cluster_member, station_member, pkt_data, elec_tran, elec_rec, fs, mpf, \
                   d_threshold, dead):
     if dead == 0:
         base_x, base_y = zip(*station_member)
@@ -229,24 +244,22 @@ def cluster_to_bs(cluster_member, station_member, pkt_data, elec_tran, elec_rec,
                                 (int(base_y[0] - cluster[1])**2)))
             # Send pkt data [clsuter-->bs]
             if  distance < d_threshold:
-                wastee = ((elec_tran + (fs*(distance**2)))*pkt_data)
-                if cluster[2] - wastee  > 0:
-                    cluster[2] = cluster[2] - wastee
+                waste = ((elec_tran + (fs*(distance**2)))*pkt_data)
+                if cluster[2] - waste  > 0:
+                    cluster[2] = cluster[2] - waste
                 else:
                     dead = 1
             elif distance >= d_threshold :
-                wastee = ((elec_tran + (mpf*(distance**4)))*pkt_data)
-                if cluster[2] - wastee  > 0:
-                    cluster[2] = cluster[2] - wastee
+                waste = ((elec_tran + (mpf*(distance**4)))*pkt_data)
+                if cluster[2] - waste  > 0:
+                    cluster[2] = cluster[2] - waste
                 else:
                     dead = 1
     return cluster_member, station_member, dead
 
 
-def optimize_t(cluster_member, node_member, node_select, max_dis, r1, pkt_data,\
-               pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, decimal, \
-               decrease_t, increase_t, dead):
-    
+def e_optimize_t(cluster_member, node_member, node_select, max_dis, r1, pkt_data,\
+               pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, dead):
     if dead == 0:
         # loss energy from send and recieve data
         for distance in max_dis:
@@ -268,6 +281,12 @@ def optimize_t(cluster_member, node_member, node_select, max_dis, r1, pkt_data,\
                     # Receive pkt data
                     node_member[node][2] = node_member[node][2] - (elec_rec*pkt_data)
 
+    return cluster_member, node_member, dead
+
+
+def optimize_t(cluster_member, node_member, node_select, max_dis, decimal, decrease_t, increase_t, r1, dead):
+    # optimize the t-value in the next round
+    if dead == 0:
         for k in range(len(cluster_member)):
             if max_dis[k][1] > r1 and cluster_member[k][3] <= 1 and cluster_member[k][3] >= 0:
                 if cluster_member[k][3] < 1:
@@ -285,8 +304,7 @@ def optimize_t(cluster_member, node_member, node_select, max_dis, r1, pkt_data,\
                     else:
                         if node_member[j][3] > 0:
                             node_member[j][3] = round(node_member[j][3] - decrease_t, decimal)
-                    
-    
+
     return cluster_member, node_member, dead
 
 
@@ -324,7 +342,7 @@ def back_to_nodes(cluster_member, node_member, max_dis, r1, t_predefine, choose)
             write = csv.writer(csvnew)
             for line1 in data:
                 write.writerow(line1)
-
+    # all cluster back to node
     for cluster in cluster_member:
         if cluster not in node_member:
             node_member.append(cluster)
@@ -335,6 +353,7 @@ def back_to_nodes(cluster_member, node_member, max_dis, r1, t_predefine, choose)
 
 def back_to_nodes_dynamic(cluster_member, node_member, max_dis, r1, t_predefine):
     """ before next loop all cluster switch back to node_member """
+    # collect data highest distance from each cluster
     data =[]
     for j in max_dis:
         data.append([cluster_member[j[0]][3], j[1]])
@@ -342,7 +361,7 @@ def back_to_nodes_dynamic(cluster_member, node_member, max_dis, r1, t_predefine)
         write = csv.writer(csvnew)
         for line1 in data:
             write.writerow(line1)
-    
+    # all cluster back to node
     for cluster in cluster_member:
         if cluster not in node_member:
             node_member.append(cluster)
@@ -354,7 +373,7 @@ def back_to_nodes_dynamic(cluster_member, node_member, max_dis, r1, t_predefine)
 def start():
     print("Choose 0 set new input")
     print("Choose 1 loop  with fixed T-value")
-    print("Choose 2 N lap with N fixed T-value")
+    print("Choose 2 loop N fixed T-value")
     print("Choose 3 loop  with dynamic T-value")
     print("Choose 99 N lap with 1 fixed T-value ****Test")
     choose = input("choose : ")
@@ -416,71 +435,44 @@ def start():
                             
                     cch, node_member = \
                         random_cch(node_member_o, len_nodes)
-                    # if len(node_member) + len(cch) != len_nodes:
-                    #     print("AFTER random_cch ********************")
-                    #     print("cch :",len(cch))
-                    #     print("node_member :",len(node_member))
-                    #     for j in cch:
-                    #         print("CCH",j)
-                    #     for k in node_member:
-                    #         print("N",k)
-                    # else:
-                    #     print("PASS")
-                    cluster_member, node_member, cch_last , dead = \
-                        distance_candidate(node_member, cch, pkt_control, \
-                        elec_tran, elec_rec, fs, mpf, d_threshold, r1,dead)
-                    # if len(node_member) + len(cluster_member) != len_nodes:
-                    #     print("AFTER distance_candidate ************")
-                    #     print("cch :",len(cch_last))
-                    #     print("node_member :",len(node_member))
-                    #     print("cluster_member :",len(cluster_member))
-                    # else:
-                    #     print("PASS")
                     
-                    node_select, cluster_member, node_member, dead, \
-                    data_distance, max_dis = \
-                        nodes_select(cluster_member, node_member, pkt_control, \
-                        elec_tran,elec_rec, fs, mpf, d_threshold, r2, \
-                        data_distance, dead)
-                    # if len(node_member) + len(cluster_member) != len_nodes:
-                    #     print("AFTER nodes_select ******************")
-                    #     print("node_member :",len(node_member))
-                    #     print("cluster_member :",len(cluster_member))
-                    #     print("max_dis :",len(max_dis))
-                    #     print("node_select :",len(node_select))
-                    # else:
-                    #     print("PASS")
+
+                    dead, cch = \
+                        e_distance_candidate(cch, pkt_control, elec_tran, \
+                        elec_rec, fs, mpf, d_threshold, dead)
+                        
+
+                    cch_last, cluster_member, node_member, dead = \
+                        distance_candidate(cch, r1, node_member, dead)
                     
+
                     cluster_member, node_member, dead = \
-                        data_to_cluster(cluster_member, node_member, node_select, \
+                        e_node_selected(cluster_member, node_member, \
+                        pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, dead)
+
+                    
+                    data_distance, node_select, max_dis, log_c_select, dead = \
+                        node_selected(cluster_member, node_member, r2, \
+                        data_distance, dead)
+                    
+
+                    cluster_member, node_member, dead = \
+                        e_data_cluster(cluster_member, node_member, node_select, \
                         pkt_data, elec_tran, elec_rec, fs, mpf, d_threshold, dead)
                     
-                    
-                    cluster_member, station_member, dead = \
-                        cluster_to_bs(cluster_member, station_member, pkt_data, \
-                        elec_tran, elec_rec, fs, mpf, d_threshold, dead)
-                    # if len(node_member) + len(cluster_member) != len_nodes:
-                    #     print("AFTER d_to_c and c_to_bs ************")
-                    #     print("cluster_member :",len(cluster_member))
-                    #     print("bs :",len(station_member))
-                    #     print("node_member :",len(node_member))
-                    # else:
-                    #     print("PASS")
 
+                    cluster_member, station_member, dead = \
+                        e_cluster_bs(cluster_member, station_member, pkt_data, \
+                        elec_tran, elec_rec, fs, mpf, d_threshold, dead)
+                    
+                    
                     # plot_graph(cluster_member, node_member, cch, station_member, \
-                    # r1, r2, data_distance)
+                    #     r1, r2, data_distance)
 
 
                     cluster_member_last, node_member = \
                         back_to_nodes(cluster_member, node_member, max_dis, r1, \
                         t_predefine, choose)
-                    # if len(node_member) != len_nodes:
-                    #     print("AFTER back_to_nodes *****************")
-                    #     print("node_member :",len(node_member))
-                    #     print("cluster_member :",len(cluster_member_last))
-                    #     print("max_dis :",len(max_dis))
-                    # else:
-                    #     print("node_member :",len(node_member))
 
                     count_lap += 1
                     if dead == 1:
@@ -490,12 +482,8 @@ def start():
             
             elif int(choose) == 2:
                 
-                lap = int(10)
                 set_t_value = "0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9".split(",")
-                
-##                while lap != len(set_t_value):
-##                    print("!!! Valid amount of T-Values !!!")
-##                    set_t_value = input("set amount of T-Values :").split(",")
+                # set_t_value = input("set amount of T-Values :").split(",")
 
                 for t in set_t_value:
                     t_predefine = float(t)
@@ -520,83 +508,49 @@ def start():
 
                         cch, node_member = \
                             random_cch(node_member_o, len_nodes)
-                        # if len(node_member) + len(cch) != len_nodes:
-                        #     print("AFTER random_cch ********************")
-                        #     print("cch :",len(cch))
-                        #     print("node_member :",len(node_member))
-                        #     for j in cch:
-                        #         print("CCH",j)
-                        #     for k in node_member:
-                        #         print("N",k)
-                        # else:
-                        #     print("PASS")
 
-                        cluster_member, node_member, cch_last , dead = \
-                            distance_candidate(node_member, cch, pkt_control, \
-                            elec_tran, elec_rec, fs, mpf, d_threshold, r1,dead)
-                        # if len(node_member) + len(cluster_member) != len_nodes:
-                        #     print("AFTER distance_candidate ************")
-                        #     print("cch :",len(cch_last))
-                        #     print("node_member :",len(node_member))
-                        #     print("cluster_member :",len(cluster_member))
-                        # else:
-                        #     print("PASS")
+
+                        dead, cch = \
+                            e_distance_candidate(cch, pkt_control, elec_tran, \
+                            elec_rec, fs, mpf, d_threshold, dead)
                         
-                        node_select, cluster_member, node_member, dead, \
-                        data_distance, max_dis = \
-                            nodes_select(cluster_member, node_member, pkt_control, \
-                            elec_tran,elec_rec, fs, mpf, d_threshold, r2, \
-                            data_distance, dead)
-                        # if len(node_member) + len(cluster_member) != len_nodes:
-                        #     print("AFTER nodes_select ******************")
-                        #     print("node_member :",len(node_member))
-                        #     print("cluster_member :",len(cluster_member))
-                        #     print("max_dis :",len(max_dis))
-                        #     print("node_select :",len(node_select))
-                        # else:
-                        #     print("PASS")
+
+                        cch_last, cluster_member, node_member, dead = \
+                            distance_candidate(cch, r1, node_member, dead)
                         
+
                         cluster_member, node_member, dead = \
-                            data_to_cluster(cluster_member, node_member, node_select, \
+                            e_node_selected(cluster_member, node_member, \
+                            pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, dead)
+
+                        
+                        data_distance, node_select, max_dis, log_c_select, dead = \
+                            node_selected(cluster_member, node_member, r2, \
+                            data_distance, dead)
+                        
+
+                        cluster_member, node_member, dead = \
+                            e_data_cluster(cluster_member, node_member, node_select, \
                             pkt_data, elec_tran, elec_rec, fs, mpf, d_threshold, dead)
                         
-                        
-                        cluster_member, station_member, dead = \
-                            cluster_to_bs(cluster_member, station_member, pkt_data, \
-                            elec_tran, elec_rec, fs, mpf, d_threshold, dead)
-                        # if len(node_member) + len(cluster_member) != len_nodes:
-                        #     print("AFTER d_to_c and c_to_bs ************")
-                        #     print("cluster_member :",len(cluster_member))
-                        #     print("bs :",len(station_member))
-                        #     print("node_member :",len(node_member))
-                        # else:
-                        #     print("PASS")
-                        
 
+                        cluster_member, station_member, dead = \
+                            e_cluster_bs(cluster_member, station_member, pkt_data, \
+                            elec_tran, elec_rec, fs, mpf, d_threshold, dead)
+                        
+                        
                         # plot_graph(cluster_member, node_member, cch, station_member, \
-                        # r1, r2, data_distance)
+                        #     r1, r2, data_distance)
 
 
                         cluster_member_last, node_member = \
                             back_to_nodes(cluster_member, node_member, max_dis, r1, \
                             t_predefine, choose)
-                        # if len(node_member) != len_nodes:
-                        #     print("AFTER back_to_nodes *****************")
-                        #     print("node_member :",len(node_member))
-                        #     print("cluster_member :",len(cluster_member_last))
-                        #     print("max_dis :",len(max_dis))
-                        # else:
-                        #     print("node_member :",len(node_member))
 
                         count_lap += 1
                         if dead == 1:
-##                            print(" ")
                             print("LAP : "+ str(count_lap))
-##                            print("[Nodes]")
-##                            for i in node_member:
-##                                print(i)
                             break;
-                        # print("****************************************")
             
             elif int(choose) == 3:
                 dead = 0
@@ -620,41 +574,52 @@ def start():
                         random_cch(node_member_o, len_nodes)
                     
 
-                    cluster_member, node_member, cch_last , dead = \
-                        distance_candidate(node_member, cch, pkt_control, \
-                        elec_tran, elec_rec, fs, mpf, d_threshold, r1,dead)
+                    dead, cch = \
+                        e_distance_candidate(cch, pkt_control, elec_tran, \
+                        elec_rec, fs, mpf, d_threshold, dead)
                     
+
+                    cch_last, cluster_member, node_member, dead = \
+                        distance_candidate(cch, r1, node_member, dead)
                     
-                    node_select, cluster_member, node_member, dead, \
-                    data_distance, max_dis = \
-                        nodes_select(cluster_member, node_member, pkt_control, \
-                        elec_tran,elec_rec, fs, mpf, d_threshold, r2, \
+
+                    cluster_member, node_member, dead = \
+                        e_node_selected(cluster_member, node_member, \
+                        pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, dead)
+
+                    
+                    data_distance, node_select, max_dis, log_c_select, dead = \
+                        node_selected(cluster_member, node_member, r2, \
                         data_distance, dead)
                     
-                    
+
                     cluster_member, node_member, dead = \
-                        data_to_cluster(cluster_member, node_member, node_select, \
+                        e_data_cluster(cluster_member, node_member, node_select, \
                         pkt_data, elec_tran, elec_rec, fs, mpf, d_threshold, dead)
                     
-                    
+
                     cluster_member, station_member, dead = \
-                        cluster_to_bs(cluster_member, station_member, pkt_data, \
+                        e_cluster_bs(cluster_member, station_member, pkt_data, \
                         elec_tran, elec_rec, fs, mpf, d_threshold, dead)
                     
-
+                    
                     # plot_graph(cluster_member, node_member, cch, station_member, \
-                    # r1, r2, data_distance)
+                    #     r1, r2, data_distance)
 
+
+                    cluster_member, node_member, dead = \
+                        e_optimize_t(cluster_member, node_member, node_select, \
+                        max_dis, r1, pkt_data, pkt_control, elec_tran, elec_rec, fs, \
+                        mpf, d_threshold, dead)
+                    
 
                     cluster_member, node_member, dead = \
                         optimize_t(cluster_member, node_member, node_select, max_dis, \
-                        r1, pkt_data, pkt_control, elec_tran, elec_rec, fs, mpf, \
-                        d_threshold, decimal, decrease_t, increase_t, dead)
-
+                        decimal, decrease_t, increase_t, r1, dead)
+                    
 
                     cluster_member_last, node_member = \
-                        back_to_nodes_dynamic(cluster_member, node_member, max_dis, r1, \
-                        t_predefine)
+                        back_to_nodes_dynamic(cluster_member, node_member, max_dis, r1, t_predefine)
 
                     count_lap += 1
                     if dead == 1:
@@ -682,81 +647,51 @@ def start():
 
                     cch, node_member = \
                         random_cch(node_member_o, len_nodes)
-                    # if len(node_member) + len(cch) != len_nodes:
-                    #     print("AFTER random_cch ********************")
-                    #     print("cch :",len(cch))
-                    #     print("node_member :",len(node_member))
-                    #     for j in cch:
-                    #         print("CCH",j)
-                    #     for k in node_member:
-                    #         print("N",k)
-                    # else:
-                        # print("PASS")
+                    
 
-                    cluster_member, node_member, cch_last , dead = \
-                        distance_candidate(node_member, cch, pkt_control, \
-                        elec_tran, elec_rec, fs, mpf, d_threshold, r1,dead)
-                    # if len(node_member) + len(cluster_member) != len_nodes:
-                    #     print("AFTER distance_candidate ************")
-                    #     print("cch :",len(cch_last))
-                    #     print("node_member :",len(node_member))
-                    #     print("cluster_member :",len(cluster_member))
-                    # else:
-                        # print("PASS")
+                    dead, cch = \
+                        e_distance_candidate(cch, pkt_control, elec_tran, \
+                        elec_rec, fs, mpf, d_threshold, dead)
+                        
+
+                    cch_last, cluster_member, node_member, dead = \
+                        distance_candidate(cch, r1, node_member, dead)
                     
-                    node_select, cluster_member, node_member, dead, \
-                    data_distance, max_dis = \
-                        nodes_select(cluster_member, node_member, pkt_control, \
-                        elec_tran,elec_rec, fs, mpf, d_threshold, r2, \
-                        data_distance, dead)
-                    # if len(node_member) + len(cluster_member) != len_nodes:
-                    #     print("AFTER nodes_select ******************")
-                    #     print("node_member :",len(node_member))
-                    #     print("cluster_member :",len(cluster_member))
-                    #     print("max_dis :",len(max_dis))
-                    #     print("node_select :",len(node_select))
-                    # else:
-                        # print("PASS")
-                    
+
                     cluster_member, node_member, dead = \
-                        data_to_cluster(cluster_member, node_member, node_select, \
+                        e_node_selected(cluster_member, node_member, \
+                        pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, dead)
+
+                    
+                    data_distance, node_select, max_dis, log_c_select, dead = \
+                        node_selected(cluster_member, node_member, r2, \
+                        data_distance, dead)
+                    
+
+                    cluster_member, node_member, dead = \
+                        e_data_cluster(cluster_member, node_member, node_select, \
                         pkt_data, elec_tran, elec_rec, fs, mpf, d_threshold, dead)
                     
-                    
-                    cluster_member, station_member, dead = \
-                        cluster_to_bs(cluster_member, station_member, pkt_data, \
-                        elec_tran, elec_rec, fs, mpf, d_threshold, dead)
-                    # if len(node_member) + len(cluster_member) != len_nodes:
-                    #     print("AFTER d_to_c and c_to_bs ************")
-                    #     print("cluster_member :",len(cluster_member))
-                    #     print("bs :",len(station_member))
-                    #     print("node_member :",len(node_member))
-                    # else:
-                        # print("PASS")
-                    
 
-                    # plot_graph(cluster_member, node_member, cch, station_member, \
-                    # r1, r2, data_distance)
+                    cluster_member, station_member, dead = \
+                        e_cluster_bs(cluster_member, station_member, pkt_data, \
+                        elec_tran, elec_rec, fs, mpf, d_threshold, dead)
+                    
+                    
+                    plot_graph(cluster_member, node_member, cch, station_member, \
+                        r1, r2, data_distance)
 
 
                     cluster_member_last, node_member = \
                         back_to_nodes(cluster_member, node_member, max_dis, r1, \
                         t_predefine, choose)
-                    # if len(node_member) != len_nodes:
-                    #     print("AFTER back_to_nodes *****************")
-                    #     print("node_member :",len(node_member))
-                    #     print("cluster_member :",len(cluster_member_last))
-                    #     print("max_dis :",len(max_dis))
-                    # else:
-                    #     print("node_member :",len(node_member))
-
-                    # print("****************************************")
-                print(" ")
-                print("LAP : ", lap)
-                print("Dead node :", dead)
-                print("[Nodes]")
-                for i in node_member:
-                    print(i)
+                    
+                # print(" ")
+                # print("LAP : ", lap)
+                # print("Dead node :", dead)
+                # print("[Nodes]")
+                # for i in node_member:
+                #     print(i)
         else:
                 raise ValueError
     except ValueError:
