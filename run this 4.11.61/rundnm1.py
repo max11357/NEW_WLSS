@@ -160,6 +160,11 @@ def node_selected(cluster_member, node_member, r2, data_distance, dead):
     max_dis = []
     node_select = []
     log_c_select = []
+    amount_n_with_c = {}
+
+    for jj in range(len(cluster_member)):
+        amount_n_with_c.update({jj:0})
+
     if dead == 0:
         # Cluster choose who's my member
         for node in range(len(node_member)):
@@ -190,6 +195,13 @@ def node_selected(cluster_member, node_member, r2, data_distance, dead):
         log = []
         max_dis = []
         check_c = 0
+
+        #count amount of nodes of each cluster in dict
+        for ff in amount_n_with_c:
+            for jj in range(len(log_c_select)):
+                if ff == log_c_select[jj][0]:
+                    amount_n_with_c[ff] += 1
+
         for j in log_c_select:
             if j[0] != -1 and j[0] == check_c:
                 log.append(j)
@@ -202,7 +214,12 @@ def node_selected(cluster_member, node_member, r2, data_distance, dead):
         for k in range(len(cluster_select)):
             log_max = max(b for (a, b) in cluster_select[k])
             max_dis.append([k, log_max])
-    
+        
+        # if cluster didn't have nodes family at all
+        for ss in amount_n_with_c.keys():
+            if amount_n_with_c[ss] == 0:
+                max_dis.append([ss, 0])
+
     return data_distance, node_select, max_dis, log_c_select, dead
 
 def e_data_cluster(cluster_member, node_member, node_select, pkt_data, elec_tran,\
@@ -268,13 +285,15 @@ def e_optimize_t(cluster_member, node_member, node_select, max_dis, r1, pkt_data
                         else:
                             dead = 1
                     else:
-                        waste = ((elec_tran + (fs*(distance[1]**2)))*pkt_control)
-                        if cluster_member[distance[0]][2] - waste  > 0:
-                            cluster_member[distance[0]][2] = cluster_member[distance[0]][2] - waste
-                        else:
-                            dead = 1
+                        if distance[1] != 0:
+                            waste = ((elec_tran + (fs*(distance[1]**2)))*pkt_control)
+                            if cluster_member[distance[0]][2] - waste  > 0:
+                                cluster_member[distance[0]][2] = cluster_member[distance[0]][2] - waste
+                            else:
+                                dead = 1
                     # Receive pkt data
-                    node_member[node][2] = node_member[node][2] - (elec_rec*pkt_data)
+                    if distance[1] != 0:
+                        node_member[node][2] = node_member[node][2] - (elec_rec*pkt_data)
 
     return cluster_member, node_member, dead
 
@@ -284,7 +303,7 @@ def optimize_t(cluster_member, node_member, node_select, max_dis, decimal, decre
     if dead == 0:
         for k in range(len(cluster_member)):
             if max_dis[k][1] > r1 and cluster_member[k][3] <= 1 and cluster_member[k][3] >= 0:
-                if cluster_member[k][3] < 1:
+                if cluster_member[k][3] < 1 :
                     cluster_member[k][3] =  round(cluster_member[k][3] + increase_t, decimal)
             else:
                 if cluster_member[k][3] > 0:
@@ -333,8 +352,9 @@ def back_to_nodes_dynamic(cluster_member, node_member, max_dis, r1, t_predefine,
     if dead == 0:
         data =[]
         for j in max_dis:
-            data.append([dead_lap, count_lap, cluster_member[j[0]][3], j[1]])
-        with open('data t dynamic and r0.csv', 'a', newline='') as csvnew:
+            if j[1] != 0:
+                data.append([dead_lap, count_lap, cluster_member[j[0]][3], j[1]])
+        with open('data t dynamic '+str(t_predefine)+' and r0.csv', 'a', newline='') as csvnew:
             write = csv.writer(csvnew)
             for line1 in data:
                 write.writerow(line1)
@@ -365,7 +385,7 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
         random_nodes(width, height, station_member, set_energy, density, t_predefine)
 
     dead = 0
-    count_lap = 0
+    count_lap = 1
     station_member, node_member_o, data_distance = [], [], []
     
     with open("station_memberD1.csv", 'r') as csvnew:
@@ -383,31 +403,31 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
                 
         cch, node_member = \
             random_cch(node_member_o, len_nodes)
-        
+    
 
         dead, cch = \
             e_distance_candidate(cch, pkt_control, elec_tran, \
             elec_rec, fs, mpf, d_threshold, dead)
-        
+     
 
         cch_last, cluster_member, node_member, dead = \
             distance_candidate(cch, r1, node_member, dead)
-        
+      
 
         cluster_member, node_member, dead = \
             e_node_selected(cluster_member, node_member, \
             pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, dead)
-
+       
         
         data_distance, node_select, max_dis, log_c_select, dead = \
             node_selected(cluster_member, node_member, r2, \
             data_distance, dead)
-        
+     
 
         cluster_member, node_member, dead = \
             e_data_cluster(cluster_member, node_member, node_select, \
             pkt_data, elec_tran, elec_rec, fs, mpf, d_threshold, dead)
-        
+     
 
         cluster_member, station_member, dead = \
             e_cluster_bs(cluster_member, station_member, pkt_data, \
@@ -422,16 +442,17 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
             e_optimize_t(cluster_member, node_member, node_select, \
             max_dis, r1, pkt_data, pkt_control, elec_tran, elec_rec, fs, \
             mpf, d_threshold, dead)
-        
+      
 
         cluster_member, node_member, dead = \
             optimize_t(cluster_member, node_member, node_select, max_dis, \
             decimal, decrease_t, increase_t, r1, dead)
-        
+      
 
         cluster_member_last, node_member = \
             back_to_nodes_dynamic(cluster_member, node_member, max_dis, r1, \
             t_predefine, count_lap, lap, dead)
+      
 
         if dead == 0:
             count_lap += 1
@@ -440,4 +461,3 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
             break
     
     print(lap, end="\n")
-

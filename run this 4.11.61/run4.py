@@ -160,6 +160,11 @@ def node_selected(cluster_member, node_member, r2, data_distance, dead):
     max_dis = []
     node_select = []
     log_c_select = []
+    amount_n_with_c = {}
+
+    for jj in range(len(cluster_member)):
+        amount_n_with_c.update({jj:0})
+
     if dead == 0:
         # Cluster choose who's my member
         for node in range(len(node_member)):
@@ -190,6 +195,13 @@ def node_selected(cluster_member, node_member, r2, data_distance, dead):
         log = []
         max_dis = []
         check_c = 0
+
+        #count amount of nodes of each cluster in dict
+        for ff in amount_n_with_c:
+            for jj in range(len(log_c_select)):
+                if ff == log_c_select[jj][0]:
+                    amount_n_with_c[ff] += 1
+
         for j in log_c_select:
             if j[0] != -1 and j[0] == check_c:
                 log.append(j)
@@ -202,7 +214,12 @@ def node_selected(cluster_member, node_member, r2, data_distance, dead):
         for k in range(len(cluster_select)):
             log_max = max(b for (a, b) in cluster_select[k])
             max_dis.append([k, log_max])
-    
+        
+        # if cluster didn't have nodes family at all
+        for ss in amount_n_with_c.keys():
+            if amount_n_with_c[ss] == 0:
+                max_dis.append([ss, 0])
+
     return data_distance, node_select, max_dis, log_c_select, dead
 
 
@@ -254,30 +271,6 @@ def e_cluster_bs(cluster_member, station_member, pkt_data, elec_tran, elec_rec, 
     return cluster_member, station_member, dead
 
 
-def optimize_t(cluster_member, node_member, node_select, max_dis, decimal, decrease_t, increase_t, r1, dead):
-    # optimize the t-value in the next round
-    if dead == 0:
-        for k in range(len(cluster_member)):
-            if max_dis[k][1] > r1 and cluster_member[k][3] <= 1 and cluster_member[k][3] >= 0:
-                if cluster_member[k][3] < 1:
-                    cluster_member[k][3] =  round(cluster_member[k][3] + increase_t, decimal)
-            else:
-                if cluster_member[k][3] > 0:
-                    cluster_member[k][3] =  round(cluster_member[k][3] - decrease_t, decimal)
-
-        for i in max_dis:
-            for j in range(len(node_member)):
-                if node_select[j][0] == i[0]:
-                    if i[1] > r1 and node_member[j][3] <= 1 and node_member[j][3] >= 0:
-                        if node_member[j][3] < 1:
-                            node_member[j][3] = round(node_member[j][3] + increase_t, decimal)
-                    else:
-                        if node_member[j][3] > 0:
-                            node_member[j][3] = round(node_member[j][3] - decrease_t, decimal)
-
-    return cluster_member, node_member, dead
-
-
 def plot_graph(cluster_member, node_member, cch, station_member, r1, r2, data_distance):
     # split 2d list to 1d *list* [use with graph only]
     node_x, node_y, energy_node, t_value = zip(*node_member)
@@ -308,9 +301,8 @@ def back_to_nodes(cluster_member, node_member, max_dis, r1, t_predefine, count_l
     if dead == 0:
         data =[]
         for j in max_dis:
-            data.append([dead_lap, count_lap,j[1], cluster_member[j[0]][3]])
-        for i in data:
-            print(i)
+            if j[1] != 0:
+             data.append([dead_lap, count_lap,j[1], cluster_member[j[0]][3]])
         with open('data t '+str(t_predefine)+' and r0.csv', 'a', newline='') as csvnew:
             write = csv.writer(csvnew)
             for line1 in data:
