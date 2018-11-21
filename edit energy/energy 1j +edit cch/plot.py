@@ -40,7 +40,6 @@ def keep(dis_fix, cluster_plot):
     for index in dis_fix:
         if index[0] == 0.1:
             fix_t_1.append(index[1])
-            
         elif index[0] == 0.2:
             fix_t_2.append(index[1])
         elif index[0] == 0.3:
@@ -61,18 +60,31 @@ def keep(dis_fix, cluster_plot):
            fix_t_6, fix_t_7, fix_t_8, fix_t_9
 
 def dynamic():
-    dynamic = []
-    with open('data t dynamic 0.9 and r0.csv', 'r') as csvnew:
-        read = csv.reader(csvnew)
-        for line in read:
-            dynamic.append(list(map(float, line)))
-    dynamic.append([' ',' ',' '])
-    return dynamic
+    t_dynamic = []
+    dyn_1, dyn_2, dyn_3, dyn_4, dyn_5, = [],[],[],[],[]
+    dyn_6, dyn_7, dyn_8, dyn_9 = [],[],[],[]
+    for i in range(1,10):
+        f = i/10
+        with open('data t dynamic '+str(f)+' and r0.csv', 'r') as csvnew:
+            read = csv.reader(csvnew)
+            for line in read:
+                t_dynamic.append(list(map(float, line)))
+            t_dynamic.append([' ',' ',' '])
+            
+    print(t_dynamic[0])
+    for index in range(len(t_dynamic)-1):
+        if t_dynamic[index][2] == 0.1:
+            if t_dynamic[index][1] == t_dynamic[index+1][1]:
+                dyn_1.append()
+
+    print(dyn_6)
+    return t_dynamic, dyn_1, dyn_2, dyn_3, dyn_4, dyn_5, dyn_6, dyn_7, dyn_8, dyn_9
 
 def data_dynamic(t_dynamic):
     count, dis_sum, t_count, t_sum = 0, 0, 0, 0
     dis_dynamic, t_dy, t_val = [], [],[]
     for i in range(len(t_dynamic)-1):
+        
         if t_dynamic[i][0] == t_dynamic[i+1][0] :
             count += 1
             t_count += 1
@@ -86,39 +98,28 @@ def data_dynamic(t_dynamic):
             t_count, t_sum = 0, 0
     return dis_dynamic, t_dy, t_val
     
-    
-def plot(fix_t_1, fix_t_2, fix_t_3, fix_t_4, fix_t_5, \
-         fix_t_6, fix_t_7, fix_t_8, fix_t_9, dis_dynamic, t_dy, t_val):
-    
-    plt.plot(fix_t_1, label='0.1')
-    plt.plot(fix_t_2, label='0.2')
-    plt.plot(fix_t_3, label='0.3')
-    plt.plot(fix_t_4, label='0.4')
-    plt.plot(fix_t_5, label='0.5')
-    plt.plot(fix_t_6, label='0.6')
-    plt.plot(fix_t_7, label='0.7')
-    plt.plot(fix_t_8, label='0.8')
-    plt.plot(fix_t_9, label='0.9')
-    plt.plot(dis_dynamic,label='dynamic  ' )
-    plt.xlabel('round')
-    plt.ylabel('average r 0 distance')
-    plt.title("average fix and dynamix predefine")
-    keep_len = 250
-    plt.xlim(0,keep_len)
-    plt.legend()
-    plt.savefig('dis_dynamic.png')
-    plt.show()
 
-    plt.plot(t_dy,label='dynamic averge is' +str("%.2f"%float(sum(t_dy)/len(t_dy))))
+def plot(dyn_1, dyn_2, dyn_3, dyn_4, dyn_5, dyn_6, dyn_7, dyn_8, dyn_9):
+
+
+
+    plt.plot(dyn_1, label ='t predefine 0.1 averge is '+str("%.2f"%float(sum(dyn_1)/len(dyn_1))))
+    plt.plot(dyn_2, label ='t predefine 0.2 averge is '+str("%.2f"%float(sum(dyn_2)/len(dyn_2))))
+    plt.plot(dyn_3, label ='t predefine 0.3 averge is '+str("%.2f"%float(sum(dyn_3)/len(dyn_3))))
+    plt.plot(dyn_4, label ='t predefine 0.4 averge is '+str("%.2f"%float(sum(dyn_4)/len(dyn_4))))
+    plt.plot(dyn_5, label ='t predefine 0.5 averge is '+str("%.2f"%float(sum(dyn_5)/len(dyn_5))))
+    plt.plot(dyn_6, label ='t predefine 0.6 averge is '+str("%.2f"%float(sum(dyn_6)/len(dyn_6))))
+    plt.plot(dyn_7, label ='t predefine 0.7 averge is '+str("%.2f"%float(sum(dyn_7)/len(dyn_7))))
+    plt.plot(dyn_8, label ='t predefine 0.8 averge is '+str("%.2f"%float(sum(dyn_8)/len(dyn_8))))
+    plt.plot(dyn_9, label ='t predefine 0.9 averge is '+str("%.2f"%float(sum(dyn_9)/len(dyn_9))))
     plt.xlabel('round')
     plt.ylabel('t_predefine')
     plt.title("average  dynamix predefine")
-    plt.xlim(0,keep_len)
+    plt.xlim(0,930)
     plt.legend()
-    plt.savefig('t_dynamic.png')
     plt.show()
-    
 
+    
 
 
 def read():
@@ -126,8 +127,8 @@ def read():
     dis_fix, cluster_plot = data_fix(fix)
     fix_t_1, fix_t_2, fix_t_3, fix_t_4, fix_t_5, \
              fix_t_6, fix_t_7, fix_t_8, fix_t_9 = keep(dis_fix, cluster_plot)
-    t_dynamic = dynamic()
+    
+    t_dynamic, dyn_1, dyn_2, dyn_3, dyn_4, dyn_5, dyn_6, dyn_7, dyn_8, dyn_9 = dynamic()
     dis_dynamic, t_dy, t_val = data_dynamic(t_dynamic)
-    plot(fix_t_1, fix_t_2, fix_t_3, fix_t_4, fix_t_5, \
-         fix_t_6, fix_t_7, fix_t_8, fix_t_9, dis_dynamic, t_dy, t_val)
+    plot(dyn_1, dyn_2, dyn_3, dyn_4, dyn_5, dyn_6, dyn_7, dyn_8, dyn_9)
 read()

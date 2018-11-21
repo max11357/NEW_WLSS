@@ -253,16 +253,16 @@ def plot_graph(cluster_member, node_member, cch, station_member, r1, r2, data_di
     fig, ax = plt.subplots()
     ax.set_aspect('equal', adjustable='datalim')
     # PLOT NODES DOT 
-    plt.plot(node_x[0:], node_y[0:], '.', color='green', alpha=0.7)
+    plt.plot(node_x[0:], node_y[0:], '.', color='green', alpha=2)
     # PLOT CLUSTER DOT 
     for plot in cluster_member:
         plt.plot(plot[0], plot[1], '.', color='red', alpha=0.7)
-        ax.add_patch(plt.Circle((plot[0], plot[1]), r1, alpha=0.17))
-        ax.add_patch(plt.Circle((plot[0], plot[1]), r2, alpha=0.17, color="pink"))
+##        ax.add_patch(plt.Circle((plot[0], plot[1]), r1, alpha=0.17))
+##        ax.add_patch(plt.Circle((plot[0], plot[1]), r2, alpha=0.17, color="pink"))
         # ax.annotate(text, (plot[0][0], plot[0][1]))
     ax.plot()   # Causes an auto-scale update.
     plt.savefig("area.png")
-    plt.close()
+    plt.show()
     plt.xlabel('distance')
     plt.title('distance between cluster and nodes sensor')
     plt.hist(data_distance ,bins = [0,5,10,15,20,25,30,35,40,45,50])
@@ -291,6 +291,7 @@ def start():
     d_threshold = 87  # **********************
     r1 = 15 # meter
     r2 = 40 # meter
+    t_predefine = 0.1
 
     if choose == 0:
         
