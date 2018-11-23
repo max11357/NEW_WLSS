@@ -699,7 +699,7 @@ def start(choose, i):
         start()
 def loop():
     for i in range(1,201):
-        start("2", i)
-##        start("3", i)
+##        start("2", i)
+        start("3", i)
 
 loop()

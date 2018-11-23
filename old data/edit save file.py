@@ -306,7 +306,7 @@ def plot_graph(cluster_member, node_member, cch, station_member, r1, r2, data_di
         # ax.annotate(text, (plot[0][0], plot[0][1]))
     ax.plot()   # Causes an auto-scale update.
     plt.savefig("area.png")
-    plt.close()
+    plt.show()
     plt.xlabel('distance')
     plt.title('distance between cluster and nodes sensor')
     plt.hist(data_distance ,bins = [0,5,10,15,20,25,30,35,40,45,50])
@@ -600,6 +600,6 @@ def start(choose, i):
 
 def loop():
     for i in range(1,5):
-        start('2',i)
+##        start('2',i)
         start('3',i)
 loop()
