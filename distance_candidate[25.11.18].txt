@@ -1,4 +1,4 @@
-def distance_candidate(cch, r1, node_member, dead, len_nodes):
+def distance_candidate(cch, r1, node_member, dead):
     cluster_member = []
     # if len(node_member) + len(cch) != len_nodes:
     #     print("BEFORE")
