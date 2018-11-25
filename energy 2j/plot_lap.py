@@ -59,7 +59,7 @@ def count_lap():
 def plot(count_1, count_2, count_3, count_4, count_5, count_6, count_7, count_8, count_9,\
            dyn_1, dyn_2, dyn_3, dyn_4, dyn_5, dyn_6, dyn_7, dyn_8, dyn_9):
     fig = 18
-    width = 0.6
+    width = 0.25
     ind = np.arange(fig)
     lap_min = [min(count_1),min(count_2),min(count_3),min(count_4),min(count_5),
                min(count_6),min(count_7),min(count_8),min(count_9),\
@@ -76,13 +76,15 @@ def plot(count_1, count_2, count_3, count_4, count_5, count_6, count_7, count_8,
                max(dyn_1),max(dyn_2),max(dyn_3),max(dyn_4),max(dyn_5),\
                max(dyn_6),max(dyn_7),max(dyn_8),max(dyn_9)]
     
-    plt.xticks(ind +width / 15 , ('fig 0.1', 'fig 0.2', 'fig 0.3', 'fig 0.4', 'fig 0.5', \
+    
+    bar_1 = plt.bar(ind, lap_max, width, label =' maximum round')
+    plt.plot()
+    bar_2 = plt.bar(ind + width, lap_mean, width,  label =' average round')
+    bar_3 = plt.bar(ind + width + width, lap_min, width, label =' minimum round')
+    plt.xticks(ind + width , ('fig 0.1', 'fig 0.2', 'fig 0.3', 'fig 0.4', 'fig 0.5', \
                                  'fig 0.6', 'fig 0.7', 'fig 0.8', 'fig 0.9',\
                                  'dyn 0.1', 'dyn 0.2', 'dyn 0.3', 'dyn 0.4', 'dyn 0.5', \
                                  'dyn 0.6', 'dyn 0.7', 'dyn 0.8', 'dyn 0.9'))
-    bar_1 = plt.bar(ind, lap_max, width, label =' maximum round')
-    bar_2 = plt.bar(ind, lap_mean, width,  label =' average round')
-    bar_3 = plt.bar(ind, lap_min, width, label =' minimum round')
     plt.ylabel('round')
     plt.title("round in difference t_predefine value")
     for rect in bar_1 + bar_2+ bar_3:
