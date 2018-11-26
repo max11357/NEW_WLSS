@@ -81,15 +81,19 @@ def plot(count_1, count_2, count_3, count_4, count_5, count_6, count_7, count_8,
     plt.plot()
     bar_2 = plt.bar(ind + width, lap_mean, width,  label =' average round')
     bar_3 = plt.bar(ind + width + width, lap_min, width, label =' minimum round')
-    plt.xticks(ind + width , ('fig 0.1', 'fig 0.2', 'fig 0.3', 'fig 0.4', 'fig 0.5', \
-                                 'fig 0.6', 'fig 0.7', 'fig 0.8', 'fig 0.9',\
+    plt.xticks(ind + width , ('fix 0.1', 'fix 0.2', 'fix 0.3', 'fix 0.4', 'fix 0.5', \
+                                 'fix 0.6', 'fix 0.7', 'fix 0.8', 'fix 0.9',\
                                  'dyn 0.1', 'dyn 0.2', 'dyn 0.3', 'dyn 0.4', 'dyn 0.5', \
-                                 'dyn 0.6', 'dyn 0.7', 'dyn 0.8', 'dyn 0.9'))
-    plt.ylabel('round')
-    plt.title("round in difference t_predefine value")
-    for rect in bar_1 + bar_2+ bar_3:
+                                 'dyn 0.6', 'dyn 0.7', 'dyn 0.8', 'dyn 0.9'), size=8)
+    plt.ylabel('Round')
+    plt.xlabel('Fix T_Value and Dynamic T_Value')
+    plt.title("Round in Difference T_Predefine Value")
+    for rect in bar_1 + bar_3:
         height = rect.get_height()
-        plt.text(rect.get_x() + rect.get_width()/2.0, height, '%d' % int(height), ha='center', va='bottom')
+        plt.text(rect.get_x() + rect.get_width()/2.0, height, '%d' % int(height), ha='center', va='bottom', size=8)
+    for rect_f in bar_2:
+        height = rect_f.get_height()
+        plt.text(rect_f.get_x() + rect_f.get_width()/2.0, height, '%.2f' % float(height), ha='center', va='bottom', size=8)
 
     plt.legend()
     plt.tight_layout()
