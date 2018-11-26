@@ -1,0 +1,61 @@
+def distance_candidate(cch, r1, node_member, dead):
+    cluster_member = []
+    # if len(node_member) + len(cch) != len_nodes:
+    #     print("BEFORE")
+    #     for aa in range(len(node_member)):print(aa, node_member[aa])
+    #     for cc in range(len(cch)):print(cc, cch[cc])
+    #     print(" ")
+    
+    if dead == 0:
+        # sort by energy [from most to least]
+        for lap in range(len(cch)-1,0,-1):
+            for j in range(lap):
+                if cch[j][2] < cch[j+1][2]:
+                    temp = cch[j]
+                    cch[j] = cch[j+1]
+                    cch[j+1] = temp
+
+        # Choose who should be cluster member
+        me_cluster = []
+        me_not = []
+        for main in range(len(cch)):
+            log_distance = []
+            for other in range(len(cch)):
+                distance = math.sqrt((cch[main][0] - cch[other][0])**2 + \
+                                    (cch[main][1] - cch[other][1])**2)
+                log_distance.append(distance)
+            
+            count = 0
+            for log in range(len(log_distance)):
+                if log != main and log_distance[log] <= r1:
+                    if main < log and cch[main] not in me_not:
+                        me_cluster.append(cch[main])
+                        me_not.append(cch[log])
+                        count = 0
+                    elif main > log and cch[main] not in me_not:
+                        me_cluster.append(cch[main])
+                        me_not.append(cch[log])
+                        count = 0
+                elif log != main and log_distance[log] > r1 and count >= len(cch)-1:
+                    if main < log and cch[main] not in me_not:
+                        me_cluster.append(cch[main])
+                elif count >= len(cch)-1 and cch[main] not in me_not:
+                    me_cluster.append(cch[main])
+                
+                count += 1
+        me_cluster2 = []
+        me_not2 = []
+        for j in me_cluster:
+            if j not in me_cluster2:
+                me_cluster2.append(j)
+        for jj in me_not:
+            if jj not in me_not2:
+                me_not2.append(jj)
+
+        for cluster in me_cluster2:
+            cluster_member.append(cluster)
+        for not_cluster in me_not2:
+            node_member.append(not_cluster)
+
+    
+    return cluster_member, node_member, dead
