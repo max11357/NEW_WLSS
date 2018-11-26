@@ -307,20 +307,25 @@ def plot(avg_rfix1, avg_rfix2, avg_rfix3, avg_rfix4, avg_rfix5,\
     plt.plot(avg_rfix7, label =' fix t predefine at 0.7')
     plt.plot(avg_rfix8, label =' fix t predefine at 0.8')
     plt.plot(avg_rfix9, label =' fix t predefine at 0.9')
-    plt.plot(avg_dyn1, label =' dynamic t predefine at 0.1')
-    plt.plot(avg_dyn2, label =' dynamic t predefine at 0.2')
-    plt.plot(avg_dyn3, label =' dynamic t predefine at 0.3')
-    plt.plot(avg_dyn4, label =' dynamic t predefine at 0.4')
-    plt.plot(avg_dyn5, label =' dynamic t predefine at 0.5')
-    plt.plot(avg_dyn6, label =' dynamic t predefine at 0.6')
-    plt.plot(avg_dyn7, label =' dynamic t predefine at 0.7')
-    plt.plot(avg_dyn8, label =' dynamic t predefine at 0.8')
-    plt.plot(avg_dyn9, label =' dynamic t predefine at 0.9')
     plt.xlabel('round')
     plt.ylabel('number of cluster')
     plt.title("number of cluster in difference t_predefine value")
     plt.legend()
     plt.show()
+    # plt.plot(avg_dyn1, label =' dynamic t predefine at 0.1')
+    # plt.plot(avg_dyn2, label =' dynamic t predefine at 0.2')
+    # plt.plot(avg_dyn3, label =' dynamic t predefine at 0.3')
+    # plt.plot(avg_dyn4, label =' dynamic t predefine at 0.4')
+    # plt.plot(avg_dyn5, label =' dynamic t predefine at 0.5')
+    # plt.plot(avg_dyn6, label =' dynamic t predefine at 0.6')
+    # plt.plot(avg_dyn7, label =' dynamic t predefine at 0.7')
+    # plt.plot(avg_dyn8, label =' dynamic t predefine at 0.8')
+    # plt.plot(avg_dyn9, label =' dynamic t predefine at 0.9')
+    # plt.xlabel('round')
+    # plt.ylabel('number of cluster')
+    # plt.title("number of cluster in difference t_predefine value")
+    # plt.legend()
+    # plt.show()
 #### just first ten round
 ##    plt.plot(avg_rfix1[:10], label =' fix t predefine at 0.1')
 ##    plt.plot(avg_rfix2[:10], label =' fix t predefine at 0.2')
@@ -377,7 +382,7 @@ def plot(avg_rfix1, avg_rfix2, avg_rfix3, avg_rfix4, avg_rfix5,\
 
     
     fig = 18
-    width = 0.7
+    width = 0.25
     ind = np.arange(fig)
     first_round = [avg_rfix1[0],avg_rfix2[0],avg_rfix3[0],avg_rfix4[0],
                avg_rfix5[0],avg_rfix6[0],avg_rfix7[0],avg_rfix8[0],avg_rfix9[0],\
@@ -405,12 +410,12 @@ def plot(avg_rfix1, avg_rfix2, avg_rfix3, avg_rfix4, avg_rfix5,\
                  mean(avg_dyn7), mean(avg_dyn8), mean(avg_dyn9)]
 
     bar_1 = plt.bar(ind, max_round, width,  label =' maximum round')
-    bar_3 = plt.bar(ind, mean_round, width, label =' average round')
-    bar_4 = plt.bar(ind, min_round, width, label =' minimum round')
-    plt.xticks(ind , ('fix 0.1', 'fix 0.2', 'fix 0.3', 'fix 0.4', 'fix 0.5', \
+    bar_3 = plt.bar(ind + width, mean_round, width, label =' average round')
+    bar_4 = plt.bar(ind + width + width, min_round, width, label =' minimum round')
+    plt.xticks(ind + width , ('fix 0.1', 'fix 0.2', 'fix 0.3', 'fix 0.4', 'fix 0.5', \
                                  'fix 0.6', 'fix 0.7', 'fix 0.8', 'fix 0.9',\
-                                 'dnm 0.1', 'dnm 0.2', 'dnm 0.3', 'dnm 0.4', 'dnm 0.5', \
-                                 'dnm 0.6', 'dnm 0.7', 'dnm 0.8', 'dnm 0.9'))
+                                 'dyn 0.1', 'dyn 0.2', 'dyn 0.3', 'dyn 0.4', 'dyn 0.5', \
+                                 'dyn 0.6', 'dyn 0.7', 'dyn 0.8', 'dyn 0.9'))
     for rect in bar_1+bar_3+bar_4:
         height = rect.get_height()
         plt.text(rect.get_x() + rect.get_width()/2.0, height, '%d' % int(height), ha='center', va='bottom')
