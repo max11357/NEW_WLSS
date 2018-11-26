@@ -352,29 +352,18 @@ def e_optimize_t(cluster_member, node_member, node_select, max_dis, r1, pkt_data
 def optimize_t(cluster_member, node_member, node_select, max_dis, decimal, decrease_t, increase_t, r1, dead, cluster_select, amount_n_with_c):
     # optimize the t-value in the next round
     if dead == 0:
-        try:
-            for k in range(len(cluster_member)):
-                if max_dis[k][1] > r1 and cluster_member[k][3] <= 1 and cluster_member[k][3] >= 0:
-                    if cluster_member[k][3] < 1 :
-                        cluster_member[k][3] =  round(cluster_member[k][3] + increase_t, decimal)
-                else:
-                    if cluster_member[k][3] > 0:
-                        cluster_member[k][3] =  round(cluster_member[k][3] - decrease_t, decimal)
-        except IndexError:
-            print(amount_n_with_c)
-            print("")
-            for h in cluster_select:print(h)
-            print("")
-            for i in max_dis:print(i)
-            print("")
-            for j in cluster_member:print(j)
-            print("optimize_t")
-
+        for k in range(len(cluster_member)):
+            if max_dis[k][1] > r1 and cluster_member[k][3] <= 1 and cluster_member[k][3] > 0:
+                if cluster_member[k][3] < 1 :
+                    cluster_member[k][3] =  round(cluster_member[k][3] + increase_t, decimal)
+            else:
+                if cluster_member[k][3] > 0:
+                    cluster_member[k][3] =  round(cluster_member[k][3] - decrease_t, decimal)
         
         for i in max_dis:
             for j in range(len(node_member)):
                 if node_select[j][0] == i[0]:
-                    if i[1] > r1 and node_member[j][3] <= 1 and node_member[j][3] >= 0:
+                    if i[1] > r1 and node_member[j][3] <= 1 and node_member[j][3] > 0:
                         if node_member[j][3] < 1:
                             node_member[j][3] = round(node_member[j][3] + increase_t, decimal)
                     else:
