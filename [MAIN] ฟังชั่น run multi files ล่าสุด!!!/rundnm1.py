@@ -381,13 +381,13 @@ def back_to_cm_dynamic(cluster_head, cluster_member, max_distance, r1, t_value, 
         log1 =[]
         for d in max_distance:
             if d[1] != 0:
-                log1.append([dead_lap, count_lap, d[1], cluster_member[d[0]][3]])
+                log1.append([dead_lap, count_lap, d[1], cluster_head[d[0]][3]])
         with open('data t dynamic '+str(t_value)+' and r0.csv', 'a', newline='') as csvnew:
             write = csv.writer(csvnew)
             for line1 in log1:
                 write.writerow(line1)
                 
-        log2= [[count_lap, len(cluster_member), count_ch_member]]
+        log2= [[count_lap, len(cluster_head), count_ch_member]]
         with open('data cluster dynamic '+str(t_value)+'.csv', 'a', newline='') as csvnew:
             write = csv.writer(csvnew)
             for line in log2:
