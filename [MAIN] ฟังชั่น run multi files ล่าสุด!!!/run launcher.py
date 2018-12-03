@@ -119,7 +119,7 @@ if __name__ == "__main__":
         density = float(0.0125)
         num_base = 1
         pos_base = "0,0"
-        set_energy = 1 # set energy = 1 Joule
+        set_energy = 2 # set energy = 1 Joule
         pkt_control = 200 # bit
         pkt_data = 4000  # bit
         d_threshold = 87  # **********************

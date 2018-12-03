@@ -95,11 +95,11 @@ def distance_candidate(cch, r1, cluster_member, dead):
     if dead == 0:
         # sort by energy [from most to least]
         for lap in range(len(cch)-1,0,-1):
-            for j in range(lap):
-                if cch[j][2] < cch[j+1][2]:
-                    temp = cch[j]
-                    cch[j] = cch[j+1]
-                    cch[j+1] = temp
+            for cm in range(lap):
+                if cch[cm][2] < cch[cm+1][2]:
+                    temp = cch[cm]
+                    cch[cm] = cch[cm+1]
+                    cch[cm+1] = temp
         
         # Choose who should be cluster member
         me_ch = []
@@ -124,9 +124,9 @@ def distance_candidate(cch, r1, cluster_member, dead):
 
         me_ch2 = []
         me_not2 = []
-        for j in me_ch:
-            if j not in me_ch2:
-                me_ch2.append(j)
+        for cm in me_ch:
+            if cm not in me_ch2:
+                me_ch2.append(cm)
         for ch2 in me_not:
             if ch2 not in me_not2:
                 me_not2.append(ch2)
@@ -191,7 +191,7 @@ def cm_select_ch(cluster_head, cluster_member, r2, data_distance, dead):
                 distance = math.sqrt((cluster_member[cm][0] - cluster_head[ch][0])**2 +
                                      (cluster_member[cm][1] - cluster_head[ch][1])**2)
                 if distance <= r2:
-                    if shotest is -1:
+                    if what_cluster is -1:
                         shotest = distance
                         what_cluster = ch
                         check = 1
@@ -206,6 +206,7 @@ def cm_select_ch(cluster_head, cluster_member, r2, data_distance, dead):
             cm_select.append([what_cluster, shotest])
             log_cm_select.append([what_cluster, shotest])
         
+
         #count amount of cm of each ch in dict
         for ch1 in amount_cm_in_ch:
             for ch2 in range(len(log_cm_select)):
@@ -245,7 +246,7 @@ def e_data_exchange(cluster_head, cluster_member, cm_select, pkt_data, elec_tran
     if dead == 0:
         # ch receive all pkt data from cm
         for cm in range(len(cluster_member)):
-            if cm_select[cm][0] != -1 or cm_select[cm][1] != -1:
+            if cm_select[cm][1] > 0:
                 # Send pkt data [cm-->ch]
                 if  cm_select[cm][1] < d_threshold:
                     e_tx = ((elec_tran + (fs*(cm_select[cm][1]**2)))*pkt_data)

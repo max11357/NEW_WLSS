@@ -191,7 +191,7 @@ def cm_select_ch(cluster_head, cluster_member, r2, data_distance, dead):
                 distance = math.sqrt((cluster_member[cm][0] - cluster_head[ch][0])**2 +
                                      (cluster_member[cm][1] - cluster_head[ch][1])**2)
                 if distance <= r2:
-                    if shotest is -1:
+                    if what_cluster is -1:
                         shotest = distance
                         what_cluster = ch
                         check = 1
@@ -201,10 +201,11 @@ def cm_select_ch(cluster_head, cluster_member, r2, data_distance, dead):
                         check = 1
                     data_distance.append(shotest)
                 elif distance > r2 and check == 0:
-                    shotest = 0
+                    shotest = -1
                     what_cluster = -1
             cm_select.append([what_cluster, shotest])
             log_cm_select.append([what_cluster, shotest])
+        
         
         #count amount of cm of each ch in dict
         for ch1 in amount_cm_in_ch:
@@ -337,13 +338,14 @@ def optimize_t(cluster_head, cluster_member, cm_select, max_distance, decimal, d
             else:
                 if cluster_head[ch][3] > 0:
                     cluster_head[ch][3] =  round(cluster_head[ch][3] - decrease_t, decimal)
-
+    
         for d in range(len(max_distance)):
             for cm in range(len(cluster_member)):
                 if cm_select[cm][0] == max_distance[d][0]:
                     if max_distance[d][1] > r1 and cluster_member[cm][3] <= 1 and cluster_member[cm][3] >= 0:
                         if cluster_member[cm][3] < 1:
                             cluster_member[cm][3] = round(cluster_member[cm][3] + increase_t, decimal)
+                        print(cm, cm_select[cm][0], max_distance[d][0], cluster_member[cm])
                     else:
                         if cluster_member[cm][3] > 0:
                             cluster_member[cm][3] = round(cluster_member[cm][3] - decrease_t, decimal)
@@ -381,13 +383,13 @@ def back_to_cm_dynamic(cluster_head, cluster_member, max_distance, r1, t_value, 
         log1 =[]
         for d in max_distance:
             if d[1] != 0:
-                log1.append([dead_lap, count_lap, d[1], cluster_member[d[0]][3]])
+                log1.append([dead_lap, count_lap, d[1], cluster_head[d[0]][3]])
         with open('data t dynamic '+str(t_value)+' and r0.csv', 'a', newline='') as csvnew:
             write = csv.writer(csvnew)
             for line1 in log1:
                 write.writerow(line1)
                 
-        log2= [[count_lap, len(cluster_member), count_ch_member]]
+        log2= [[count_lap, len(cluster_head), count_ch_member]]
         with open('data cluster dynamic '+str(t_value)+'.csv', 'a', newline='') as csvnew:
             write = csv.writer(csvnew)
             for line in log2:
@@ -463,11 +465,7 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
         e_to_bs(cluster_head, bs_member, pkt_data, elec_tran, elec_rec, fs, mpf, d_threshold, dead, count_ch_member)
         
         
-        # plot_graph(cluster_member, node_member, cch, station_member, r1, r2, data_distance)
-
-
-        # cluster_head, cluster_member, dead = \
-        # e_optimize_t(cluster_head, cluster_member, cm_select, max_distance, r1, pkt_data, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, dead)
+        # plot_graph(cluster_head, cluster_member, cch, bs_member, r1, r2, data_distance)
 
 
         cluster_head, cluster_member, dead = \
