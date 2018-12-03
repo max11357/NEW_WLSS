@@ -128,7 +128,7 @@ if __name__ == "__main__":
         decimal = 2
         decrease_t = 0.01
         increase_t = 0.01
-        amount_dead_lap = range(1,101)
+        amount_dead_lap = range(1)
         
         t1 = time.time()
         
