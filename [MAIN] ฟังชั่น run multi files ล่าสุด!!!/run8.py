@@ -11,7 +11,7 @@ def base_bs(num_base, pos_base):
     for _ in range(num_base):
         bs_member.append(map(int, pos_base.split(',')))
     # append data to csv. file
-    with open('bs_member1.csv', 'w', newline='') as csvnew:
+    with open('bs_member8.csv', 'w', newline='') as csvnew:
         write = csv.writer(csvnew)
         for line in bs_member:
             write.writerow(line)
@@ -32,11 +32,11 @@ def random_cm(width, height, bs_member, set_energy, density, t_value):
             cm_original.append([random_x, random_y, set_energy, t_value])
         count += 1
     # append data to csv. file
-    with open('cm_original1.csv', 'w', newline='') as csvnew:
+    with open('cm_original8.csv', 'w', newline='') as csvnew:
         write = csv.writer(csvnew)
         for line1 in cm_original:
             write.writerow(line1)
-    with open("len_cm1.txt", "w") as text_file:
+    with open("len_cm8.txt", "w") as text_file:
         text_file.write(str(len_cm))
 
     return cm_original, len_cm
@@ -406,7 +406,7 @@ def back_to_cm(cluster_head, cluster_member, max_distance, r1, t_value, count_la
 def start(width, height, density, num_base, pos_base, set_energy, pkt_control, pkt_data, \
           d_threshold, r1, r2, dead_lap):
     # Change Variables Here!!
-    t_value =  float(0.1)
+    t_value =  float(0.8)
     elec_tran = 50 * (10 ** (-9))  # 50 nanoj
     elec_rec = 50 * (10 ** (-9))  # 50 nanoj
     fs = 10 * (10 ** (-12))  # 10 picoj
@@ -424,17 +424,17 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
     dead = 0
     count_lap = 1
     bs_member, cm_original, data_distance = [], [], []
-    with open("bs_member1.csv", 'r') as csvnew:
+    with open("bs_member8.csv", 'r') as csvnew:
         read = csv.reader(csvnew)
         for line1 in read:
             bs_member.append(list(map(int, line1)))
-    with open("cm_original1.csv", 'r') as csvnew:
+    with open("cm_original8.csv", 'r') as csvnew:
         read = csv.reader(csvnew)
         for line2 in read:
             cm_original.append(list(map(float, line2)))
     
     while True:
-        with open("len_cm1.txt", "r") as text_file:
+        with open("len_cm8.txt", "r") as text_file:
             len_cm = int(text_file.read())
 
 

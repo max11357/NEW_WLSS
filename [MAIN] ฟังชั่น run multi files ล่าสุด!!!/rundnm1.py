@@ -47,7 +47,7 @@ def random_cch(cm_original, len_cm):
     cch = []
     # random candidate cluster
     for cm in cm_original:
-        prob_v = round(rd.uniform(0, 1), 1)
+        prob_v = round(rd.uniform(0, 1), 2)
         if prob_v <= cm[3]:
             cch.append(cm)
     cluster_member = [i for i in cm_original if i not in cch]
@@ -59,7 +59,7 @@ def random_cch(cm_original, len_cm):
 
 
 def e_distance_candidate(cch, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, dead, r1):
-    
+    # BROADCAST
     if dead == 0:
         # Calculate all energy use to send/Receive pkt control
         for main in range(len(cch)):
@@ -68,7 +68,7 @@ def e_distance_candidate(cch, pkt_control, elec_tran, elec_rec, fs, mpf, d_thres
                                 (cch[main][1] - cch[other][1])**2)
                 e_rx = elec_rec*pkt_control
                 # Receive pkt control
-                if distance <= r1:
+                if distance <= r1: # if its in range of r1 its can recieve
                     if cch[other][2] - e_rx > 0:
                         cch[other][2] = cch[other][2] - e_rx
                     else:
@@ -130,7 +130,10 @@ def distance_candidate(cch, r1, cluster_member, dead):
         for ch2 in me_not:
             if ch2 not in me_not2:
                 me_not2.append(ch2)
-
+        
+        if len(me_ch2)+len(me_not2) != len(cch): # Spacial case xD
+            me_not2.append(cch[-1])
+        
         for ch in me_ch2:
             cluster_head.append(ch)
         for not_ch in me_not2:
@@ -139,74 +142,144 @@ def distance_candidate(cch, r1, cluster_member, dead):
     return cluster_head, cluster_member, dead
 
 
-def e_cm_select_ch(cluster_head, cluster_member, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, dead, r2):
+def e_ch_bcast(cluster_head, cluster_member, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, dead, r2):
+    # BROADCAST
     if dead == 0:
         # Calculate all energy use to send/Receive pkt control
-            for ch in range(len(cluster_head)):
-                # Send pkt control
-                if  r2 < d_threshold:
-                    e_tx = ((elec_tran + (fs*(r2**2)))*pkt_control)
-                    if cluster_head[ch][2] - e_tx > 0 : 
-                        cluster_head[ch][2] = cluster_head[ch][2] - e_tx
+        for ch in range(len(cluster_head)):
+            # Send pkt control
+            if  r2 < d_threshold:
+                e_tx = ((elec_tran + (fs*(r2**2)))*pkt_control)
+                if cluster_head[ch][2] - e_tx > 0 : 
+                    cluster_head[ch][2] = cluster_head[ch][2] - e_tx
+                else:
+                    dead = 1
+            elif r2 >= d_threshold :
+                e_tx = ((elec_tran + (mpf*(r2**4)))*pkt_control)
+                if cluster_head[ch][2] - e_tx  > 0:
+                    cluster_head[ch][2] = cluster_head[ch][2] - e_tx
+                else:
+                    dead = 1
+            for cm in range(len(cluster_member)):
+                distance = math.sqrt((cluster_member[cm][0] - cluster_head[ch][0])**2 +
+                                    (cluster_member[cm][1] - cluster_head[ch][1])**2)
+                # Receive pkt control
+                e_rx = elec_rec*pkt_control
+                if distance <= r2: # if its in range of r2 its can recieve
+                    if cluster_member[cm][2] - e_rx > 0:
+                        cluster_member[cm][2] = cluster_member[cm][2] - e_rx
                     else:
                         dead = 1
-                elif r2 >= d_threshold :
-                    e_tx = ((elec_tran + (mpf*(r2**4)))*pkt_control)
-                    if cluster_head[ch][2] - e_tx  > 0:
-                        cluster_head[ch][2] = cluster_head[ch][2] - e_tx
-                    else:
-                        dead = 1
-                for cm in range(len(cluster_member)):
-                    distance = math.sqrt((cluster_member[cm][0] - cluster_head[ch][0])**2 +
-                                        (cluster_member[cm][1] - cluster_head[ch][1])**2)
-                    # Receive pkt control
-                    e_rx = elec_rec*pkt_control
-                    if distance <= r2:
-                        if cluster_member[cm][2] - e_rx > 0:
-                            cluster_member[cm][2] = cluster_member[cm][2] - e_rx
-                        else:
-                            dead = 1
 
     return cluster_head, cluster_member, dead
 
 
-def cm_select_ch(cluster_head, cluster_member, r2, data_distance, dead):
-    max_distance = []
+def ch_bcast(cluster_head, cluster_member, data_distance, dead, r2):
     cm_select = []
     log_cm_select = []
-    ch_select = []
-    amount_cm_in_ch = {}
-    count_ch_member = []
-
-    for ch in range(len(cluster_head)):
-        amount_cm_in_ch.update({ch:0})
-
+    cm_ofr = 0
     if dead == 0:
-        # Cluster choose who's my member
+        # cm choose who's my ch
         for cm in range(len(cluster_member)):
-            shotest = -1  # shortest distance
-            what_cluster = -1  # what cluster?
+            shotest = 0  # shortest distance
+            what_ch = -1  # what cluster?
             check = 0
             for ch in range(len(cluster_head)):
                 distance = math.sqrt((cluster_member[cm][0] - cluster_head[ch][0])**2 +
                                      (cluster_member[cm][1] - cluster_head[ch][1])**2)
                 if distance <= r2:
-                    if what_cluster is -1:
+                    data_distance.append(shotest)
+                    if what_ch is -1:
                         shotest = distance
-                        what_cluster = ch
+                        what_ch = ch
                         check = 1
                     elif distance < shotest:
                         shotest = distance
-                        what_cluster = ch
+                        what_ch = ch
                         check = 1
-                    data_distance.append(shotest)
                 elif distance > r2 and check == 0:
-                    shotest = -1
-                    what_cluster = -1
-            cm_select.append([what_cluster, shotest])
-            log_cm_select.append([what_cluster, shotest])
-        
-        
+                    shotest = 0
+                    what_ch = -1
+            cm_select.append([what_ch, shotest])
+            log_cm_select.append([what_ch, shotest])
+
+        for i in cm_select:
+            if i[0] == -1:
+                cm_ofr += 1
+    
+    return cm_select, log_cm_select, data_distance, dead, cm_ofr
+
+
+def e_cm_join(cluster_head, cluster_member, cm_select, pkt_control, elec_tran,\
+                    elec_rec, fs, mpf, d_threshold, dead):
+    # UNICAST
+    if dead == 0:
+        # ch receive all pkt data from cm
+        for cm in range(len(cluster_member)):
+            if cm_select[cm][1] > 0:
+                # Send pkt data [cm-->ch]
+                if  cm_select[cm][1] < d_threshold:
+                    e_tx = ((elec_tran + (fs*(cm_select[cm][1]**2)))*pkt_control)
+                    if cluster_member[cm][2] - e_tx  > 0:
+                        cluster_member[cm][2] = cluster_member[cm][2] - e_tx
+                    else:
+                        dead = 1
+                elif cm_select[cm][1] >= d_threshold :
+                    e_tx = ((elec_tran + (mpf*(cm_select[cm][1]**4)))*pkt_control)
+                    if cluster_member[cm][2] - e_tx  > 0:
+                        cluster_member[cm][2] = cluster_member[cm][2] - e_tx
+                    else:
+                        dead = 1
+                # Receive pkt data
+                e_rx = elec_rec*pkt_control
+                if cluster_head[cm_select[cm][0]][2] - e_rx > 0:
+                    cluster_head[cm_select[cm][0]][2] = cluster_head[cm_select[cm][0]][2] - e_rx
+                else:
+                    dead = 1
+
+    return cluster_head, cluster_member, dead
+
+
+def e_ch_collect_data(cluster_head, cluster_member, cm_select, pkt_data, elec_tran,\
+                    elec_rec, fs, mpf, d_threshold, dead):
+    # UNICAST
+    if dead == 0:
+        # ch receive all pkt data from cm
+        for cm in range(len(cluster_member)):
+            if cm_select[cm][1] > 0:
+                # Send pkt data [cm-->ch]
+                if  cm_select[cm][1] < d_threshold:
+                    e_tx = ((elec_tran + (fs*(cm_select[cm][1]**2)))*pkt_data)
+                    if cluster_member[cm][2] - e_tx  > 0:
+                        cluster_member[cm][2] = cluster_member[cm][2] - e_tx
+                    else:
+                        dead = 1
+                elif cm_select[cm][1] >= d_threshold :
+                    e_tx = ((elec_tran + (mpf*(cm_select[cm][1]**4)))*pkt_data)
+                    if cluster_member[cm][2] - e_tx  > 0:
+                        cluster_member[cm][2] = cluster_member[cm][2] - e_tx
+                    else:
+                        dead = 1
+                # Receive pkt data
+                e_rx = elec_rec*pkt_data
+                if cluster_head[cm_select[cm][0]][2] - e_rx > 0:
+                    cluster_head[cm_select[cm][0]][2] = cluster_head[cm_select[cm][0]][2] - e_rx
+                else:
+                    dead = 1
+
+    return cluster_head, cluster_member, dead
+
+
+def ch_collect_data(cluster_head, cluster_member, dead, cm_select, log_cm_select):
+    max_distance = []
+    ch_select = []
+    count_ch_member = []
+    amount_cm_in_ch = {}
+
+    for ch in range(len(cluster_head)):
+        amount_cm_in_ch.update({ch:0})
+
+    if dead == 0:
         #count amount of cm of each ch in dict
         for ch1 in amount_cm_in_ch:
             for ch2 in range(len(log_cm_select)):
@@ -238,36 +311,7 @@ def cm_select_ch(cluster_head, cluster_member, r2, data_distance, dead):
             log_max = max(b for (a, b) in ch_select[k])
             max_distance.append([k, log_max])
             
-    return data_distance, cm_select, max_distance, dead, count_ch_member
-
-
-def e_data_exchange(cluster_head, cluster_member, cm_select, pkt_data, elec_tran,\
-                    elec_rec, fs, mpf, d_threshold, dead):
-    if dead == 0:
-        # ch receive all pkt data from cm
-        for cm in range(len(cluster_member)):
-            if cm_select[cm][1] > 0:
-                # Send pkt data [cm-->ch]
-                if  cm_select[cm][1] < d_threshold:
-                    e_tx = ((elec_tran + (fs*(cm_select[cm][1]**2)))*pkt_data)
-                    if cluster_member[cm][2] - e_tx  > 0:
-                        cluster_member[cm][2] = cluster_member[cm][2] - e_tx
-                    else:
-                        dead = 1
-                elif cm_select[cm][1] >= d_threshold :
-                    e_tx = ((elec_tran + (mpf*(cm_select[cm][1]**4)))*pkt_data)
-                    if cluster_member[cm][2] - e_tx  > 0:
-                        cluster_member[cm][2] = cluster_member[cm][2] - e_tx
-                    else:
-                        dead = 1
-                # Receive pkt data
-                e_rx = elec_rec*pkt_data
-                if cluster_head[cm_select[cm][0]][2] - e_rx > 0:
-                    cluster_head[cm_select[cm][0]][2] = cluster_head[cm_select[cm][0]][2] - e_rx
-                else:
-                    dead = 1
-
-    return cluster_head, cluster_member, dead
+    return max_distance, dead, count_ch_member
 
 
 def e_to_bs(cluster_head, bs_member, pkt_data, elec_tran, elec_rec, fs, mpf, \
@@ -297,37 +341,6 @@ def e_to_bs(cluster_head, bs_member, pkt_data, elec_tran, elec_rec, fs, mpf, \
     return cluster_head, bs_member, dead
 
 
-def e_optimize_t(cluster_head, cluster_member, cm_select, max_distance, r1, pkt_data,\
-               pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, dead):
-    if dead == 0:
-        # loss energy from send and recieve data
-        for d in max_distance:
-            # Send pkt data [node<--cluster]
-            if  d[1] < d_threshold :
-                e_tx = ((elec_tran + (fs*(d[1]**2)))*pkt_control)
-                if cluster_head[d[0]][2] - e_tx  > 0:
-                    cluster_head[d[0]][2] = cluster_head[d[0]][2] - e_tx
-                else:
-                    dead = 1
-            else:
-                e_tx = ((elec_tran + (mpf*(d[1]**4)))*pkt_control)
-                if cluster_head[d[0]][2] - e_tx  > 0:
-                    cluster_head[d[0]][2] = cluster_head[d[0]][2] - e_tx
-                else:
-                    dead = 1
-            for cm in range(len(cluster_member)):
-                # Receive pkt data
-                if cm_select[cm][0] == d[0]:
-                    e_rx = elec_rec*pkt_data
-                    if d[1] != 0:
-                        if cluster_member[cm][2] - e_rx > 0:
-                            cluster_member[cm][2] = cluster_member[cm][2] - e_rx
-                        else:
-                            dead = 1
-            
-    return cluster_head, cluster_member, dead
-
-
 def optimize_t(cluster_head, cluster_member, cm_select, max_distance, decimal, decrease_t, increase_t, r1, dead):
     # optimize the t-value in the next round
     if dead == 0:
@@ -338,14 +351,13 @@ def optimize_t(cluster_head, cluster_member, cm_select, max_distance, decimal, d
             else:
                 if cluster_head[ch][3] > 0:
                     cluster_head[ch][3] =  round(cluster_head[ch][3] - decrease_t, decimal)
-    
+
         for d in range(len(max_distance)):
             for cm in range(len(cluster_member)):
                 if cm_select[cm][0] == max_distance[d][0]:
                     if max_distance[d][1] > r1 and cluster_member[cm][3] <= 1 and cluster_member[cm][3] >= 0:
                         if cluster_member[cm][3] < 1:
                             cluster_member[cm][3] = round(cluster_member[cm][3] + increase_t, decimal)
-                        print(cm, cm_select[cm][0], max_distance[d][0], cluster_member[cm])
                     else:
                         if cluster_member[cm][3] > 0:
                             cluster_member[cm][3] = round(cluster_member[cm][3] - decrease_t, decimal)
@@ -376,9 +388,10 @@ def plot_graph(cluster_head, cluster_member, cch, bs_member, r1, r2, data_distan
     plt.savefig("distance.png")
 
 
-def back_to_cm_dynamic(cluster_head, cluster_member, max_distance, r1, t_value, count_lap, dead_lap, dead, count_ch_member):
+def back_to_cm_dynamic(cluster_head, cluster_member, max_distance, r1, t_value, count_lap, dead_lap, dead, count_ch_member, len_cm, cm_ofr):
     """ before next loop all cluster switch back to node_member """
     # collect data highest distance from each cluster
+    amont_nodes_rn = len(cluster_head)+len(cluster_member)
     if dead == 0:
         log1 =[]
         for d in max_distance:
@@ -389,7 +402,7 @@ def back_to_cm_dynamic(cluster_head, cluster_member, max_distance, r1, t_value, 
             for line1 in log1:
                 write.writerow(line1)
                 
-        log2= [[count_lap, len(cluster_head), count_ch_member]]
+        log2= [[count_lap, len(cluster_head), count_ch_member, len_cm, len_cm-cm_ofr]]
         with open('data cluster dynamic '+str(t_value)+'.csv', 'a', newline='') as csvnew:
             write = csv.writer(csvnew)
             for line in log2:
@@ -407,10 +420,10 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
           d_threshold, r1, r2, decimal, decrease_t, increase_t, dead_lap):
     # Change Variables Here!!
     t_value =  float(0.1)
-    elec_tran = 50 * (10 ** (-9))  # 50 nanocm
-    elec_rec = 50 * (10 ** (-9))  # 50 nanocm
-    fs = 10 * (10 ** (-12))  # 10 picocm
-    mpf = 0.013 * (10 ** (-12))  # 0.012 picocm
+    elec_tran = 50 * (10 ** (-9))  # 50 nanoj
+    elec_rec = 50 * (10 ** (-9))  # 50 nanoj
+    fs = 10 * (10 ** (-12))  # 10 picoj
+    mpf = 0.012 * (10 ** (-12))  # 0.012 picoj
 
     # Random new network topology
     bs_member = \
@@ -419,6 +432,7 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
 
     cm_original, len_cm = \
     random_cm(width, height, bs_member, set_energy, density, t_value)
+
 
     dead = 0
     count_lap = 1
@@ -450,15 +464,23 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
         
 
         cluster_head, cluster_member, dead = \
-        e_cm_select_ch(cluster_head, cluster_member, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, dead, r2)
+        e_ch_bcast(cluster_head, cluster_member, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, dead, r2)
 
-        
-        data_distance, cm_select, max_distance, dead, count_ch_member = \
-        cm_select_ch(cluster_head, cluster_member, r2, data_distance, dead)
+
+        cm_select, log_cm_select, data_distance, dead, cm_ofr = \
+        ch_bcast(cluster_head, cluster_member, data_distance, dead, r2)
         
 
         cluster_head, cluster_member, dead = \
-        e_data_exchange(cluster_head, cluster_member, cm_select, pkt_data, elec_tran,elec_rec, fs, mpf, d_threshold, dead)
+        e_cm_join(cluster_head, cluster_member, cm_select, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, dead)
+
+
+        cluster_head, cluster_member, dead = \
+        e_ch_collect_data(cluster_head, cluster_member, cm_select, pkt_data, elec_tran, elec_rec, fs, mpf, d_threshold, dead)
+
+
+        max_distance, dead, count_ch_member = \
+        ch_collect_data(cluster_head, cluster_member, dead, cm_select, log_cm_select)
         
 
         cluster_head, bs_member, dead = \
@@ -473,7 +495,7 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
 
 
         cluster_member = \
-        back_to_cm_dynamic(cluster_head, cluster_member, max_distance, r1, t_value, count_lap, dead_lap, dead, count_ch_member)
+        back_to_cm_dynamic(cluster_head, cluster_member, max_distance, r1, t_value, count_lap, dead_lap, dead, count_ch_member, len_cm, cm_ofr)
         
 
         if dead == 0:

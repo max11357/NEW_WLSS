@@ -11,7 +11,7 @@ def base_bs(num_base, pos_base):
     for _ in range(num_base):
         bs_member.append(map(int, pos_base.split(',')))
     # append data to csv. file
-    with open('bs_member1.csv', 'w', newline='') as csvnew:
+    with open('bs_memberD9.csv', 'w', newline='') as csvnew:
         write = csv.writer(csvnew)
         for line in bs_member:
             write.writerow(line)
@@ -32,11 +32,11 @@ def random_cm(width, height, bs_member, set_energy, density, t_value):
             cm_original.append([random_x, random_y, set_energy, t_value])
         count += 1
     # append data to csv. file
-    with open('cm_original1.csv', 'w', newline='') as csvnew:
+    with open('cm_originalD9.csv', 'w', newline='') as csvnew:
         write = csv.writer(csvnew)
         for line1 in cm_original:
             write.writerow(line1)
-    with open("len_cm1.txt", "w") as text_file:
+    with open("len_cmD9.txt", "w") as text_file:
         text_file.write(str(len_cm))
 
     return cm_original, len_cm
@@ -90,7 +90,7 @@ def e_distance_candidate(cch, pkt_control, elec_tran, elec_rec, fs, mpf, d_thres
     return dead, cch
 
 
-def distance_candidate(cch, r1, cluster_member, dead, count_lap):
+def distance_candidate(cch, r1, cluster_member, dead):
     cluster_head = []
     if dead == 0:
         # sort by energy [from most to least]
@@ -131,17 +131,13 @@ def distance_candidate(cch, r1, cluster_member, dead, count_lap):
             if ch2 not in me_not2:
                 me_not2.append(ch2)
         
-
         if len(me_ch2)+len(me_not2) != len(cch): # Spacial case xD
             me_not2.append(cch[-1])
-
-
+        
         for ch in me_ch2:
             cluster_head.append(ch)
         for not_ch in me_not2:
             cluster_member.append(not_ch)
-        
-        
 
     return cluster_head, cluster_member, dead
 
@@ -204,10 +200,9 @@ def ch_bcast(cluster_head, cluster_member, data_distance, dead, r2):
                 elif distance > r2 and check == 0:
                     shotest = 0
                     what_ch = -1
-                
             cm_select.append([what_ch, shotest])
             log_cm_select.append([what_ch, shotest])
-        
+
         for i in cm_select:
             if i[0] == -1:
                 cm_ofr += 1
@@ -346,72 +341,90 @@ def e_to_bs(cluster_head, bs_member, pkt_data, elec_tran, elec_rec, fs, mpf, \
     return cluster_head, bs_member, dead
 
 
-def plot_graph(cluster_head, cluster_member, cch, bs_member, r1, r2, data_distance, count_lap, len_cm):
-    if len(cluster_head) + len(cluster_member) != len_cm:
-        # split 2d list to 1d *list* [use with graph only]
-        node_x, node_y, energy_node, t_value = zip(*cluster_member)
-        # PLOT
-        fig, ax = plt.subplots()
-        ax.set_aspect('equal', adjustable='datalim')
-        
-        # PLOT CM DOT 
-        for plotn in cluster_member:
-            plt.plot(plotn[0], plotn[1], '.', color='green', alpha=0.7)
-        # PLOT CCH DOT 
-        for plotcch in cch:
-            plt.plot(plotcch[0], plotcch[1], '.', color='yellow', alpha=0.7)
-        # PLOT CH DOT 
-        for plot in cluster_head:
-            plt.plot(plot[0], plot[1], '.', color='red', alpha=0.7)
-            ax.add_patch(plt.Circle((plot[0], plot[1]), r1, alpha=0.30))
-            ax.add_patch(plt.Circle((plot[0], plot[1]), r2, alpha=0.30, color="pink"))
-            # ax.annotate(text, (plot[0][0], plot[0][1]))
-        ax.plot()   # Causes an auto-scale update.
-        plt.savefig("area lap "+str(count_lap)+".png")
-        plt.close()
-        plt.xlabel('distance')
-        plt.title('distance between cluster and nodes sensor')
-        plt.hist(data_distance ,bins = [0,5,10,15,20,25,30,35,40,45,50])
-        # plt.savefig("distance.png")
+def optimize_t(cluster_head, cluster_member, cm_select, max_distance, decimal, decrease_t, increase_t, r1, dead):
+    # optimize the t-value in the next round
+    if dead == 0:
+        for ch in range(len(cluster_head)):
+            if max_distance[ch][1] > r1 and cluster_head[ch][3] <= 1 and cluster_head[ch][3] >= 0:
+                if cluster_head[ch][3] < 1 :
+                    cluster_head[ch][3] =  round(cluster_head[ch][3] + increase_t, decimal)
+            else:
+                if cluster_head[ch][3] > 0:
+                    cluster_head[ch][3] =  round(cluster_head[ch][3] - decrease_t, decimal)
+
+        for d in range(len(max_distance)):
+            for cm in range(len(cluster_member)):
+                if cm_select[cm][0] == max_distance[d][0]:
+                    if max_distance[d][1] > r1 and cluster_member[cm][3] <= 1 and cluster_member[cm][3] >= 0:
+                        if cluster_member[cm][3] < 1:
+                            cluster_member[cm][3] = round(cluster_member[cm][3] + increase_t, decimal)
+                    else:
+                        if cluster_member[cm][3] > 0:
+                            cluster_member[cm][3] = round(cluster_member[cm][3] - decrease_t, decimal)
+
+    return cluster_head, cluster_member, dead
 
 
-def back_to_cm(cluster_head, cluster_member, max_distance, r1, t_value, count_lap, dead_lap, dead, count_ch_member, len_cm, cm_ofr):
-    """ before next loop all cluster switch back to cluster_member """
+def plot_graph(cluster_head, cluster_member, cch, bs_member, r1, r2, data_distance):
+    # split 2d list to 1d *list* [use with graph only]
+    node_x, node_y, energy_node, t_value = zip(*cluster_member)
+    # PLOT
+    fig, ax = plt.subplots()
+    ax.set_aspect('equal', adcmustable='datalim')
+    # PLOT NODES DOT 
+    plt.plot(node_x[0:], node_y[0:], '.', color='green', alpha=0.7)
+    # PLOT CLUSTER DOT 
+    for plot in cluster_head:
+        plt.plot(plot[0], plot[1], '.', color='red', alpha=0.7)
+        ax.add_patch(plt.Circle((plot[0], plot[1]), r1, alpha=0.17))
+        ax.add_patch(plt.Circle((plot[0], plot[1]), r2, alpha=0.17, color="pink"))
+        # ax.annotate(text, (plot[0][0], plot[0][1]))
+    ax.plot()   # Causes an auto-scale update.
+    plt.savefig("area.png")
+    plt.close()
+    plt.xlabel('distance')
+    plt.title('distance between cluster and nodes sensor')
+    plt.hist(data_distance ,bins = [0,5,10,15,20,25,30,35,40,45,50])
+    plt.savefig("distance.png")
+
+
+def back_to_cm_dynamic(cluster_head, cluster_member, max_distance, r1, t_value, count_lap, dead_lap, dead, count_ch_member, len_cm, cm_ofr):
+    """ before next loop all cluster switch back to node_member """
     # collect data highest distance from each cluster
-
+    amont_nodes_rn = len(cluster_head)+len(cluster_member)
     if dead == 0:
         log1 =[]
         for d in max_distance:
             if d[1] != 0:
                 log1.append([dead_lap, count_lap, d[1], cluster_head[d[0]][3]])
-        with open('data t '+str(t_value)+' and r0.csv', 'a', newline='') as csvnew:
+        with open('data t dynamic '+str(t_value)+' and r0.csv', 'a', newline='') as csvnew:
             write = csv.writer(csvnew)
             for line1 in log1:
                 write.writerow(line1)
-        
-        log2 = [[count_lap, len(cluster_head), count_ch_member, len_cm, len_cm-cm_ofr]]
-        with open('data cluster fix '+str(t_value)+'.csv', 'a', newline='') as csvnew:
+                
+        log2= [[count_lap, len(cluster_head), count_ch_member, len_cm, len_cm-cm_ofr]]
+        with open('data cluster dynamic '+str(t_value)+'.csv', 'a', newline='') as csvnew:
             write = csv.writer(csvnew)
             for line in log2:
                 write.writerow(line)
-        
+
         # all cluster back to node
         for ch in cluster_head:
             if ch not in cluster_member:
                 cluster_member.append(ch)
-
+    
     return cluster_member
 
 
 def start(width, height, density, num_base, pos_base, set_energy, pkt_control, pkt_data, \
-          d_threshold, r1, r2, dead_lap):
+          d_threshold, r1, r2, decimal, decrease_t, increase_t, dead_lap):
     # Change Variables Here!!
-    t_value =  float(0.1)
+    t_value =  float(0.9)
     elec_tran = 50 * (10 ** (-9))  # 50 nanoj
     elec_rec = 50 * (10 ** (-9))  # 50 nanoj
     fs = 10 * (10 ** (-12))  # 10 picoj
     mpf = 0.012 * (10 ** (-12))  # 0.012 picoj
-    
+
     # Random new network topology
     bs_member = \
     base_bs(num_base, pos_base)
@@ -424,17 +437,17 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
     dead = 0
     count_lap = 1
     bs_member, cm_original, data_distance = [], [], []
-    with open("bs_member1.csv", 'r') as csvnew:
+    with open("bs_memberD9.csv", 'r') as csvnew:
         read = csv.reader(csvnew)
         for line1 in read:
             bs_member.append(list(map(int, line1)))
-    with open("cm_original1.csv", 'r') as csvnew:
+    with open("cm_originalD9.csv", 'r') as csvnew:
         read = csv.reader(csvnew)
         for line2 in read:
             cm_original.append(list(map(float, line2)))
     
     while True:
-        with open("len_cm1.txt", "r") as text_file:
+        with open("len_cmD9.txt", "r") as text_file:
             len_cm = int(text_file.read())
 
 
@@ -447,7 +460,7 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
         
 
         cluster_head, cluster_member, dead = \
-        distance_candidate(cch, r1, cluster_member, dead, count_lap)
+        distance_candidate(cch, r1, cluster_member, dead)
         
 
         cluster_head, cluster_member, dead = \
@@ -457,7 +470,7 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
         cm_select, log_cm_select, data_distance, dead, cm_ofr = \
         ch_bcast(cluster_head, cluster_member, data_distance, dead, r2)
         
-        
+
         cluster_head, cluster_member, dead = \
         e_cm_join(cluster_head, cluster_member, cm_select, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, dead)
 
@@ -474,22 +487,26 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
         e_to_bs(cluster_head, bs_member, pkt_data, elec_tran, elec_rec, fs, mpf, d_threshold, dead, count_ch_member)
         
         
-        # plot_graph(cluster_head, cluster_member, cch, bs_member, r1, r2, data_distance, count_lap, len_cm)
+        # plot_graph(cluster_head, cluster_member, cch, bs_member, r1, r2, data_distance)
+
+
+        cluster_head, cluster_member, dead = \
+        optimize_t(cluster_head, cluster_member, cm_select, max_distance, decimal, decrease_t, increase_t, r1, dead)
 
 
         cluster_member = \
-        back_to_cm(cluster_head, cluster_member, max_distance, r1, t_value, count_lap, dead_lap, dead, count_ch_member, len_cm, cm_ofr)
+        back_to_cm_dynamic(cluster_head, cluster_member, max_distance, r1, t_value, count_lap, dead_lap, dead, count_ch_member, len_cm, cm_ofr)
         
-        
+
         if dead == 0:
             count_lap += 1
         elif dead == 1:
             print("DeadLAP : "+ str(count_lap-1))
             log3 = [[t_value, count_lap]]
-            with open('count lap fix '+str(t_value)+'.csv', 'a', newline='') as csvnew:
+            with open('count lap dynamic '+str(t_value)+'.csv', 'a', newline='') as csvnew:
                 write = csv.writer(csvnew)
                 for line in log3:
                     write.writerow(line)
             break
-        
+    
     print(dead_lap, end="\n")
