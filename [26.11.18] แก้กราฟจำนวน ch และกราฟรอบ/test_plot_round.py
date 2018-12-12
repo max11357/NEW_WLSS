@@ -77,17 +77,17 @@ def plot(count_1, count_2, count_3, count_4, count_5, count_6, count_7, count_8,
                max(dyn_6),max(dyn_7),max(dyn_8),max(dyn_9)]
     
     
-    bar_1 = plt.bar(ind, lap_max, width, label =' maximum round')
+    bar_1 = plt.bar(ind, lap_max, width, label =' Maximum round')
     plt.plot()
-    bar_2 = plt.bar(ind + width, lap_mean, width,  label =' average round')
-    bar_3 = plt.bar(ind + width + width, lap_min, width, label =' minimum round')
+    bar_2 = plt.bar(ind + width, lap_mean, width,  label =' Average round')
+    bar_3 = plt.bar(ind + width + width, lap_min, width, label =' Minimum round')
     plt.xticks(ind + width , ('fix 0.1', 'fix 0.2', 'fix 0.3', 'fix 0.4', 'fix 0.5', \
                                  'fix 0.6', 'fix 0.7', 'fix 0.8', 'fix 0.9',\
                                  'dyn 0.1', 'dyn 0.2', 'dyn 0.3', 'dyn 0.4', 'dyn 0.5', \
                                  'dyn 0.6', 'dyn 0.7', 'dyn 0.8', 'dyn 0.9'), size=8)
-    plt.ylabel('Round')
+    plt.ylabel('Rounds')
     plt.xlabel('Fix T_Value and Dynamic T_Value')
-    plt.title("Round in Difference T_Predefine Value")
+    plt.title("Rounds in Difference T_Predefine Value")
     for rect in bar_1 + bar_3:
         height = rect.get_height()
         plt.text(rect.get_x() + rect.get_width()/2.0, height, '%d' % int(height), ha='center', va='bottom', size=8)
@@ -99,7 +99,40 @@ def plot(count_1, count_2, count_3, count_4, count_5, count_6, count_7, count_8,
     plt.tight_layout()
     plt.show()
 
+    x = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+    xi = [ i for i in x]
+    
+    
+    
+    plt.subplot(121)
+    plt.ylim(400,2500)
+    line1 = plt.plot(xi, lap_max[:9], marker='o', label='Maximum T Fix')
+    line2 = plt.plot(xi, lap_mean[:9], marker='o', label='Average T Fix')
+    line3 = plt.plot(xi, lap_min[:9], marker='o', label='Minimum T Fix')
+    plt.ylabel('Rounds')
+    plt.xlabel('Fix T_Value')
+    plt.title("Rounds in Different T_Predefine Value")
+    plt.legend()
 
+    plt.subplot(122)
+    plt.ylim(400,2500)
+    line1 = plt.plot(xi, lap_max[9:], marker='o', label='Maximum T Dynamic')
+    line2 = plt.plot(xi, lap_mean[9:], marker='o', label='Average T Dynamic')
+    line3 = plt.plot(xi, lap_min[9:], marker='o', label='Minimum T Dynamic')
+    plt.legend()
+    plt.ylabel('Rounds')
+    plt.xlabel('Dynamic T_Value')
+    plt.show()
+
+    plt.title("Average Rounds in Different T_Predefine Value")
+    plt.ylim(400,2500)
+    plt.plot(xi, lap_mean[:9], marker='o', label='Fix Average Rounds ')
+    plt.plot(xi, lap_mean[9:], marker='o', label='Dynamic Average Rounds ')
+    plt.legend()
+    plt.ylabel('Rounds')
+    plt.xlabel('T_Value')
+    plt.show()
+    
 def run():
     count_1, count_2, count_3, count_4, count_5, count_6, count_7, count_8, count_9,\
            dyn_1, dyn_2, dyn_3, dyn_4, dyn_5, dyn_6, dyn_7, dyn_8, dyn_9 = count_lap()
