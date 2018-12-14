@@ -108,6 +108,7 @@ def run():
     max_list, mean_list, min_list = [],[],[]
     
     for i in range(len(fix)):
+        print(i, fix[i][0])
         append_data_n_plot(fix[i], 'fix', i+1, max_list, mean_list, min_list)
     for i in range(len(dyn)):
         append_data_n_plot(dyn[i], 'dnm', i+1, max_list, mean_list, min_list)
