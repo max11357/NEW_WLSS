@@ -4,14 +4,14 @@ import matplotlib.pyplot as plt
 import csv
 
 
-def base_bs(num_base, pos_base):
+def base_bs(num_base, pos_base, t_value):
     """input bs point"""
     # Set POS bs here
     bs_member = []
     for _ in range(num_base):
         bs_member.append(map(int, pos_base.split(',')))
     # append data to csv. file
-    with open('bs_member1.csv', 'w', newline='') as csvnew:
+    with open('bs_member'+str(t_value*10)+'.csv', 'w', newline='') as csvnew:
         write = csv.writer(csvnew)
         for line in bs_member:
             write.writerow(line)
@@ -31,11 +31,11 @@ def random_cm(width, height, bs_member, set_energy, density, t_value, decrease_v
             cm_original.append([random_x, random_y, set_energy, t_value, decrease_val])
         count += 1
     # append data to csv. file
-    with open('cm_original1.csv', 'w', newline='') as csvnew:
+    with open('cm_original'+str(t_value*10)+'.csv', 'w', newline='') as csvnew:
         write = csv.writer(csvnew)
         for line1 in cm_original:
             write.writerow(line1)
-    with open("len_cm1.txt", "w") as text_file:
+    with open('len_cm'+str(t_value*10)+'.txt', "w") as text_file:
         text_file.write(str(len_cm))
 
     return cm_original, len_cm
@@ -58,7 +58,7 @@ def random_cch(cm_original, len_cm):
 
 
 def e_distance_candidate(cch, pkt_control, elec_tran, elec_rec, fs, \
-                         mpf, d_threshold, dead, r, dead_point):
+                         mpf, d_threshold, dead, r, dead_point, used_energy):
     
     if dead == 0:
         # Calculate all energy use to send/Receive pkt control
@@ -71,29 +71,32 @@ def e_distance_candidate(cch, pkt_control, elec_tran, elec_rec, fs, \
                 if distance <= r1:
                     if cch[other][2] - e_rx > 0:
                         cch[other][2] = cch[other][2] - e_rx
+                        used_energy['1'] = used_energy.get('1')+e_rx
                     else:
                         dead_point = cch[other]
-                        dead_point.append('cch anno')
+                        dead_point.append('1')
                         dead = 0
             # Send pkt control
             if  r1 < d_threshold:
                 e_tx = (elec_tran + (fs*(r1**2)))*pkt_control
                 if cch[main][2] - e_tx > 0:
                     cch[main][2] = cch[main][2] - e_tx
+                    used_energy['2'] = used_energy.get('2')+e_tx
                 else:
                     dead_point = cch[main]
-                    dead_point.append('cch recive each')
+                    dead_point.append('2')
                     dead = 1
             elif r1 >= d_threshold:
                 e_tx = (elec_tran + (mpf*(r1**4)))*pkt_control
                 if cch[main][2] - e_tx  > 0:
                     cch[main][2] = cch[main][2] - e_tx
+                    used_energy['2'] = used_energy.get('2')+e_tx
                 else:
                     dead_point = cch[main]
-                    dead_point.append('cch recive each')
+                    dead_point.append('2')
                     dead = 1
             
-    return dead, cch, dead_point
+    return dead, cch, dead_point, used_energy
 
 
 def distance_candidate(cch, r1, cluster_member, dead, cm_original):
@@ -146,7 +149,7 @@ def distance_candidate(cch, r1, cluster_member, dead, cm_original):
 
 
 def e_cm_select_ch(cluster_head, cluster_member, pkt_control, elec_tran, \
-                   elec_rec, fs, mpf, d_threshold, dead, r2, dead_point):
+                   elec_rec, fs, mpf, d_threshold, dead, r2, dead_point, used_energy):
     if dead == 0:
         # Calculate all energy use to send/Receive pkt control
             for ch in range(len(cluster_head)):
@@ -155,17 +158,19 @@ def e_cm_select_ch(cluster_head, cluster_member, pkt_control, elec_tran, \
                     e_tx = ((elec_tran + (fs*(r2**2)))*pkt_control)
                     if cluster_head[ch][2] - e_tx > 0 : 
                         cluster_head[ch][2] = cluster_head[ch][2] - e_tx
+                        used_energy['3'] = used_energy.get('3')+e_tx
                     else:
                         dead_point = cluster_head[ch]
-                        dead_point.append('cch announce')
+                        dead_point.append('3')
                         dead = 1
                 elif r2 >= d_threshold :
                     e_tx = ((elec_tran + (mpf*(r2**4)))*pkt_control)
                     if cluster_head[ch][2] - e_tx  > 0:
                         cluster_head[ch][2] = cluster_head[ch][2] - e_tx
+                        used_energy['3'] = used_energy.get('3')+e_tx
                     else:
                         dead_point = cluster_head[ch]
-                        dead_point.append('cch announce')
+                        dead_point.append('3')
                         dead = 1
                 for cm in range(len(cluster_member)):
                     distance = math.sqrt((cluster_member[cm][0] - cluster_head[ch][0])**2 +
@@ -175,12 +180,13 @@ def e_cm_select_ch(cluster_head, cluster_member, pkt_control, elec_tran, \
                     if distance <= r2:
                         if cluster_member[cm][2] - e_rx > 0:
                             cluster_member[cm][2] = cluster_member[cm][2] - e_rx
+                            used_energy['4'] = used_energy.get('4')+e_rx
                         else:
                             dead_point = cluster_member[cm]
-                            dead_point.append('cch recive each')
+                            dead_point.append('4')
                             dead = 1
 
-    return cluster_head, cluster_member, dead, dead_point
+    return cluster_head, cluster_member, dead, dead_point, used_energy
 
 
 def cm_select_ch(cluster_head, cluster_member, r2, data_distance, dead):
@@ -255,7 +261,7 @@ def cm_select_ch(cluster_head, cluster_member, r2, data_distance, dead):
 
 
 def e_data_exchange(cluster_head, cluster_member, cm_select, pkt_data, elec_tran,\
-                    elec_rec, fs, mpf, d_threshold, dead, dead_point):
+                    elec_rec, fs, mpf, d_threshold, dead, dead_point, used_energy):
     if dead == 0:
         # ch receive all pkt data from cm
         for cm in range(len(cluster_member)):
@@ -265,32 +271,35 @@ def e_data_exchange(cluster_head, cluster_member, cm_select, pkt_data, elec_tran
                     e_tx = ((elec_tran + (fs*(cm_select[cm][1]**2)))*pkt_data)
                     if cluster_member[cm][2] - e_tx  > 0:
                         cluster_member[cm][2] = cluster_member[cm][2] - e_tx
+                        used_energy['5'] = used_energy.get('5')+e_tx
                     else:
                         dead_point = cluster_member[cm]
-                        dead_point.append('data cm to ch')
+                        dead_point.append('5')
                         dead = 1
                 elif cm_select[cm][1] >= d_threshold :
                     e_tx = ((elec_tran + (mpf*(cm_select[cm][1]**4)))*pkt_data)
                     if cluster_member[cm][2] - e_tx  > 0:
                         cluster_member[cm][2] = cluster_member[cm][2] - e_tx
+                        used_energy['5'] = used_energy.get('5')+e_tx
                     else:
                         dead_point = cluster_member[cm]
-                        dead_point.append('data cm to ch')
+                        dead_point.append('5')
                         dead = 1
                 # Receive pkt data
                 e_rx = elec_rec*pkt_data
                 if cluster_head[cm_select[cm][0]][2] - e_rx > 0:
                     cluster_head[cm_select[cm][0]][2] = cluster_head[cm_select[cm][0]][2] - e_rx
+                    used_energy['6'] = used_energy.get('6')+e_rx
                 else:
                     dead_point = cluster_member[cm]
-                    dead_point.append('ch recive out of energy ')
+                    dead_point.append('6')
                     dead = 1
 
-    return cluster_head, cluster_member, dead, dead_point
+    return cluster_head, cluster_member, dead, dead_point, used_energy
 
 
 def e_to_bs(cluster_head, bs_member, pkt_data, elec_tran, elec_rec, fs, mpf, \
-                  d_threshold, dead, count_ch_member, dead_point):
+                  d_threshold, dead, count_ch_member, dead_point, used_energy):
     if dead == 0:
         base_x, base_y = zip(*bs_member)
         
@@ -298,9 +307,10 @@ def e_to_bs(cluster_head, bs_member, pkt_data, elec_tran, elec_rec, fs, mpf, \
             e_agg = (count_ch_member[member]+1)*pkt_data*elec_tran
             if cluster_head[member][2] - e_agg > 0:
                 cluster_head[member][2] -= e_agg
+                used_energy['7'] = used_energy.get('7')+e_agg
             else:
                 dead_point = cluster_head[member]
-                dead_point.append('merge pkt ')
+                dead_point.append('7')
                 dead = 1
                 
         
@@ -311,17 +321,19 @@ def e_to_bs(cluster_head, bs_member, pkt_data, elec_tran, elec_rec, fs, mpf, \
                 e_tx = (elec_tran + (fs*(distance**2)))*pkt_data
                 if ch[2] - e_tx  > 0:
                     ch[2] = ch[2] - e_tx
+                    used_energy['8'] = used_energy.get('8')+e_tx
                 else:
                     dead_point = ch
-                    dead_point.append('ch to bs')
+                    dead_point.append('8')
                     dead = 1
             elif distance >= d_threshold :
                 e_tx = (elec_tran + (mpf*(distance**4)))*pkt_data
                 if ch[2] - e_tx  > 0:
                     ch[2] = ch[2] - e_tx
+                    used_energy['8'] = used_energy.get('8')+e_tx
                 else:
                     dead_point = ch
-                    dead_point.append('ch to bs')
+                    dead_point.append('8')
                     dead = 1
     return cluster_head, bs_member, dead, dead_point
 
@@ -386,11 +398,12 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
     fs = 10 * (10 ** (-12))  # 10 picoj
     mpf = 0.012 * (10 ** (-12))  # 0.012 picoj
     dead_point = []
+    used_energy = {'1':0,'2':0,'3':0,'4':0,'5':0,'6':0,'7':0, '8':0}
     
     
     # Random new network topology
     bs_member = \
-    base_bs(num_base, pos_base)
+    base_bs(num_base, pos_base, t_value)
 
 
     cm_original, len_cm = \
@@ -418,27 +431,26 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
         random_cch(cm_original, len_cm)
 
 
-        dead, cch, dead_point = \
-        e_distance_candidate(cch, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, dead, r1, dead_point)
+        dead, cch, dead_point, used_energy = \
+        e_distance_candidate(cch, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, dead, r1, dead_point, used_energy)
         
 
         cluster_head, cluster_member, dead, cm_original = \
         distance_candidate(cch, r1, cluster_member, dead, cm_original)
         
-        cluster_head, cluster_member, dead, dead_point = \
-        e_cm_select_ch(cluster_head, cluster_member, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, dead, r2, dead_point)
+        cluster_head, cluster_member, dead, dead_point, used_energy = \
+        e_cm_select_ch(cluster_head, cluster_member, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, dead, r2, dead_point, used_energy)
 
         
-        data_distance, cm_select, max_distance, dead, count_ch_member = \
-        cm_select_ch(cluster_head, cluster_member, r2, data_distance, dead)
+        data_distance, cm_select, max_distance, dead, count_ch_member = cm_select_ch(cluster_head, cluster_member, r2, data_distance, dead)
         
 
-        cluster_head, cluster_member, dead, dead_point = \
-        e_data_exchange(cluster_head, cluster_member, cm_select, pkt_data, elec_tran,elec_rec, fs, mpf, d_threshold, dead, dead_point)
+        cluster_head, cluster_member, dead, dead_point, used_energy = \
+        e_data_exchange(cluster_head, cluster_member, cm_select, pkt_data, elec_tran,elec_rec, fs, mpf, d_threshold, dead, dead_point,  used_energy)
         
 
         cluster_head, bs_member, dead, dead_point = \
-        e_to_bs(cluster_head, bs_member, pkt_data, elec_tran, elec_rec, fs, mpf, d_threshold, dead, count_ch_member, dead_point)
+        e_to_bs(cluster_head, bs_member, pkt_data, elec_tran, elec_rec, fs, mpf, d_threshold, dead, count_ch_member, dead_point, used_energy)
         
         
         # plot_graph(cluster_head, cluster_member, cch, bs_member, r1, r2, data_distance)
@@ -447,11 +459,16 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
         cluster_member = \
         back_to_cm(cluster_head, cluster_member, max_distance, r1, t_value, count_lap, dead_lap, dead, count_ch_member)
         
-        
         if dead == 0:
             count_lap += 1
         elif dead == 1:
             print("DeadLAP : "+ str(count_lap-1))
+            print(used_energy)
+            
+##            with open('used energy fix '+str(t_value)+'.csv', 'a', newline='') as csvnew:
+##                write = csv.writer(csvnew)
+##                for line in dead_point:
+##                    write.writerow(line)
             dead_point = [dead_point]
             with open('dead point fix '+str(t_value)+'.csv', 'a', newline='') as csvnew:
                 write = csv.writer(csvnew)
@@ -471,7 +488,7 @@ height = 100 # meter
 density = float(0.0125)
 num_base = 1
 pos_base = "-10,50"
-set_energy = 1 # set energy = 1 Joule
+set_energy = 0.1 # set energy = 1 Joule
 pkt_control = 200 # bit
 pkt_data = 4000  # bit
 d_threshold = 87  # **********************
@@ -481,6 +498,6 @@ decimal = 2
 decrease_t = 0.01
 increase_t = 0.01
 
-for l in range(45):
+for l in range(10):
     start(width, height, density, num_base, pos_base, set_energy, pkt_control, pkt_data, \
             d_threshold, r1, r2, l)
