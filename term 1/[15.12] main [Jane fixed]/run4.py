@@ -71,29 +71,29 @@ def e_comp(cch, pkt_control, elec_tran, elec_rec, fs, \
                 if distance <= r1: # if its in range of r1 its can recieve
                     if cch[other][2] - e_rx > 0:
                         cch[other][2] = cch[other][2] - e_rx
-                        used_energy['1'] = used_energy.get('1')+e_rx
+                        used_energy['2'] = used_energy.get('2')+e_rx
                     else:
                         dead_point = cch[other]
-                        dead_point.append('1')
+                        dead_point.append('2')
                         dead = 0
             # Send pkt control
             if  r1 < d_threshold:
                 e_tx = (elec_tran + (fs*(r1**2)))*pkt_control
                 if cch[main][2] - e_tx > 0:
                     cch[main][2] = cch[main][2] - e_tx
-                    used_energy['2'] = used_energy.get('2')+e_tx
+                    used_energy['1'] = used_energy.get('1')+e_tx
                 else:
                     dead_point = cch[main]
-                    dead_point.append('2')
+                    dead_point.append('1')
                     dead = 1
             elif r1 >= d_threshold:
                 e_tx = (elec_tran + (mpf*(r1**4)))*pkt_control
                 if cch[main][2] - e_tx  > 0:
                     cch[main][2] = cch[main][2] - e_tx
-                    used_energy['2'] = used_energy.get('2')+e_tx
+                    used_energy['1'] = used_energy.get('1')+e_tx
                 else:
                     dead_point = cch[main]
-                    dead_point.append('2')
+                    dead_point.append('1')
                     dead = 1
             
     return dead, cch, dead_point, used_energy
