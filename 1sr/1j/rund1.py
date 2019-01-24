@@ -18,7 +18,7 @@ def base_bs(num_base, pos_base, t_value):
 
     return bs_member
 
-
+        
 def random_cm(width, height, bs_member, set_energy, density, t_value):
     """random cm"""
     # Random cm
@@ -41,6 +41,24 @@ def random_cm(width, height, bs_member, set_energy, density, t_value):
 
     return cm_original, len_cm
 
+def pull_data(cm_original):
+    data_set = []
+    count = 1
+    at1, at2, at3, at4,at5,at6 = [],[],[],[],[],[]
+    at7, at8, at9, at10,at11,at12 = [],[],[],[],[],[]
+    at13, at14, at15, at16,at17,at18,at19 = [],[],[],[],[],[],[]
+    count = 1
+    with open('place.csv', 'r', newline='') as csvnew:
+        read = csv.reader(csvnew)
+        for line in read:
+            eval('at%d'% (count)).append(line)
+            count += 1
+    for cm in range(len(cm_original)):
+        place = rd.randint(1, 19)
+        cm_original[cm].append(eval('at%d'% (place))[0])
+        
+    
+    return cm_original
 
 def random_cch(cm_original, len_cm):
     """random cch from amount Node"""
@@ -357,7 +375,7 @@ def e_conf(cluster_head, cluster_member, pkt_control, elec_tran, \
 
     return cluster_head, cluster_member, dead, dead_point, used_energy
 
-
+        
 def e_intra(cluster_head, cluster_member, cm_select, pkt_data, elec_tran,\
                     elec_rec, fs, mpf, d_threshold, dead, dead_point, used_energy):
     # UNICAST
@@ -402,7 +420,7 @@ def e_agg(cluster_head, count_ch_member, pkt_data, elec_tran, dead_point, dead,\
     # summarize data
     if dead == 0:
         for member in range(len(count_ch_member)):
-            e_agg = (count_ch_member[member]+1)*pkt_data*elec_tran
+            e_agg = (count_ch_member[member]+1)*pkt_data*(elec_tran**10)
             if cluster_head[member][2] - e_agg > 0:
                 cluster_head[member][2] -= e_agg
                 used_energy['11'] = used_energy.get('11')+e_agg
@@ -530,7 +548,7 @@ def back_to_cm_dynamic(cluster_head, cluster_member, max_distance, r1, t_value, 
 
 
 def start(width, height, density, num_base, pos_base, set_energy, pkt_control, pkt_data, \
-          d_threshold, r1, r2, decimal, decrease_t, increase_t, dead_lap):
+          d_threshold, r1, r2, decimal, decrease_t, increase_t, dead_lap, super_round):
     # Change Variables Here!!
     t_value =  float(0.1)
     elec_tran = 50 * (10 ** (-9))  # 50 nanocm
@@ -549,9 +567,12 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
     cm_original, len_cm = \
     random_cm(width, height, bs_member, set_energy, density, t_value)
 
+    cm_original = pull_data(cm_original)
+
     dead = 0
     count_lap = 1
-    bs_member, cm_original, data_distance = [], [], []
+    bs_member, data_distance = [], [],
+##    cm_original=[]
     with open("bs_memberD"+str(t_value*10)+".csv", 'r') as csvnew:
         read = csv.reader(csvnew)
         for line1 in read:
@@ -600,7 +621,8 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
         e_conf(cluster_head, cluster_member, pkt_control, elec_tran, elec_rec, \
                fs, mpf, d_threshold, dead, dead_point, max_distance, used_energy)
 
-
+        
+        
         cluster_head, cluster_member, dead, dead_point, used_energy = \
         e_intra(cluster_head, cluster_member, cm_select, pkt_data, elec_tran, \
                 elec_rec, fs, mpf, d_threshold, dead, dead_point, used_energy)
@@ -625,6 +647,7 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
 
         cluster_member = \
         back_to_cm_dynamic(cluster_head, cluster_member, max_distance, r1, t_value, count_lap, dead_lap, dead, count_ch_member, len_cm, cm_out_of_range, ch_t_compare)
+
         
 
         if dead == 0:
@@ -651,7 +674,6 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
                 for line in log3:
                     write.writerow(line)
             break
-    
     print(dead_lap, end="\n")
 
 width = 100 # meter
@@ -668,9 +690,10 @@ r2 = r1*((2*math.log(10))**(0.5)) # meter
 decimal = 2
 decrease_t = 0.01
 increase_t = 0.01
+super_round = 2
 
-for l in range(1,51):
+for l in range(1,70):
                 start(width, height, density, num_base, pos_base, set_energy, pkt_control, pkt_data, \
-                        d_threshold, r1, r2, decimal, decrease_t, increase_t, l)
+                        d_threshold, r1, r2, decimal, decrease_t, increase_t, l, super_round)
 
 
