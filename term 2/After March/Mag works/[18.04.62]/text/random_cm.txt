@@ -1,0 +1,25 @@
+def random_cm(width, height, bs_member, set_energy, density, t_value):
+    """random cm"""
+    # Random cm
+    cm_original = []
+    len_cm = math.ceil(density * (width * height)) 
+    count = 0
+    while len(cm_original) != len_cm:
+        cache_cm = []
+        random_x, random_y = rd.randint(0, width), rd.randint(0, height)
+        data_set = rd.randint(1, 19)
+        if [random_x, random_y] not in cache_cm:
+            cache_cm.append([random_x, random_y])
+        if [random_x, random_y] in cache_cm:
+            cm_original.append([random_x, random_y, set_energy, t_value, data_set, count+1])
+        count += 1
+    
+    # append data to csv. file
+    with open('cm_originalD'+str(t_value*10)+'.csv', 'w', newline='') as csvnew:
+        write = csv.writer(csvnew)
+        for line1 in cm_original:
+            write.writerow(line1)
+    with open("len_cmD"+str(t_value*10)+".txt", "w") as text_file:
+        text_file.write(str(len_cm))
+
+    return cm_original, len_cm
