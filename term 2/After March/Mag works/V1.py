@@ -118,7 +118,7 @@ def comp_1(cch, r1, dead, cm_original, super_round, diff_per):
 
 
 def e_comp(me_ch, cch, pkt_control, elec_tran, elec_rec, fs, \
-        mpf, d_threshold, dead, r1, dead_point, used_energy, super_round, diff_per):
+        mpf, d_threshold, dead, r1, dead_point, used_energy):
     
     # BROADCAST
     if dead == 0:
@@ -161,7 +161,7 @@ def e_comp(me_ch, cch, pkt_control, elec_tran, elec_rec, fs, \
     return dead, cch, dead_point, used_energy
 
 
-def comp_2(me_ch, shutdown, cluster_member, dead):
+def comp_2(me_ch, shutdown, cluster_member, dead, super_round, diff_per):
     cluster_head = []       
     
     if dead == 0:
@@ -684,11 +684,11 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
 
             dead, cch, dead_point, used_energy = \
             e_comp(me_ch, cch, pkt_control, elec_tran, elec_rec, fs, mpf, d_threshold, \
-                dead, r1, dead_point, used_energy, super_round, diff_per)
+                dead, r1, dead_point, used_energy)
             
 
             cluster_head, cluster_member = \
-            comp_2(me_ch, shutdown, cluster_member, dead)
+            comp_2(me_ch, shutdown, cluster_member, dead, super_round, diff_per)
             # ----------------------------------------------------------------------------------
             
             cluster_head, cluster_member, dead, dead_point, used_energy = \
@@ -831,11 +831,11 @@ r2 = r1*((2*math.log(10))**(0.5)) # meter
 decimal = 2
 decrease_t = 0.01
 increase_t = 0.01
-super_round = 0
-diff_per = 0.0
+super_round = 10
+diff_per = 2.0
 
 
-for l in range(10):
+for l in range(100):
     if l == 0:
         with open('data t and rd SR '+str(super_round)+' '+str(int(diff_per)) +'.csv', 'a', newline='') as csvnew:
             write = csv.writer(csvnew)
