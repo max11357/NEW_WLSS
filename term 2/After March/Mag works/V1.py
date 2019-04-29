@@ -670,7 +670,7 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
         with open('len_cm SR '+str(super_round)+' '+str(int(diff_per))+".txt", "r") as text_file:
             len_cm = int(text_file.read())
 
-        if cache > 4608:
+        if cache > 4608 - 1:
             cache = 0
         
         if check_super_round == 0:
