@@ -26,12 +26,12 @@ def pull_data():
     at_gap1152_4 = [ [] for _ in range(19)]
     at_gap1152_6 = [ [] for _ in range(19)]
     
-    # 4608
+    # # 4608
     for per in [2,4,6]:
         for num in range(1,20):
             cache2 = 0
             count2 = 0
-            while cache2 != 4608 - 1:
+            while cache2 < 4608 - 1:
                 old = float(eval('at%d'% (num))[0][cache2])
                 new = float(eval('at%d'% (num))[0][cache2+1])
                 diff = abs(((old - new) / old)*100)
@@ -40,14 +40,18 @@ def pull_data():
                 if diff > per:
                     # print(diff)
                     count2 += 1 
-            eval('at_gap4608_%d'% (per))[num-1].append([num, (count2/len(eval('at%d'% (num))[0]))*100])
-    
+            eval('at_gap4608_%d'% (per))[num-1].append([num, count2, (count2/4608)*100])
+        # print(per, "**********************")
+        # for i in eval('at_gap4608_%d'% (per)):
+        #     print(i[0][0],i[0][1])
+        # print("____________________________________________")
+
     # 4608/2 = 2304
     for per in [2,4,6]:
         for num in range(1,20):
             cache2 = 0
             count2 = 0
-            while cache2 != 2304 - 1:
+            while cache2 < 2304 - 1:
                 old = float(eval('at%d'% (num))[0][cache2])
                 new = float(eval('at%d'% (num))[0][cache2+1])
                 diff = abs(((old - new) / old)*100)
@@ -56,14 +60,18 @@ def pull_data():
                 if diff > per:
                     # print(diff)
                     count2 += 1 
-            eval('at_gap2304_%d'% (per))[num-1].append([num, (count2/len(eval('at%d'% (num))[0]))*100])
-    
+            eval('at_gap2304_%d'% (per))[num-1].append([num, count2, (count2/2304)*100])
+        # print(per, "**********************")
+        # for i in eval('at_gap2304_%d'% (per)):
+        #     print(i[0][0],i[0][1])
+        # print("____________________________________________")
+
     # 4608/4 = 1152
     for per in [2,4,6]:
         for num in range(1,20):
             cache2 = 0
             count2 = 0
-            while cache2 != 1152 - 1:
+            while cache2 < 1152 - 1:
                 old = float(eval('at%d'% (num))[0][cache2])
                 new = float(eval('at%d'% (num))[0][cache2+1])
                 diff = abs(((old - new) / old)*100)
@@ -72,109 +80,153 @@ def pull_data():
                 if diff > per:
                     # print(diff)
                     count2 += 1 
-            eval('at_gap1152_%d'% (per))[num-1].append([num, (count2/len(eval('at%d'% (num))[0]))*100])
-    
-    with open('gaps.txt', 'w') as f:
-        f.write("data:4608 gap:2% \n")
+            eval('at_gap1152_%d'% (per))[num-1].append([num, count2, (count2/1152)*100])
+        # print(per, "**********************")
+        # for i in eval('at_gap1152_%d'% (per)):
+        #     print(i[0][0],i[0][1])
+        # print("____________________________________________")
+
+    with open('atN.txt', 'w') as f:
+        f.write("data:4608 gap:2% ****\n")
         for item1 in at_gap4608_2:
             f.write("at")
             f.write("%s" % item1[0][0])
-            f.write(" %.2f" % item1[0][1])
+            f.write(" %d" % item1[0][1])
+            f.write(" %.2f" % item1[0][2])
             f.write(" %\n")
-        f.write("data:2304 gap:2% \n")
+        f.write("data:2304 gap:2% ****\n")
         for item2 in at_gap2304_2:
             f.write("at")
             f.write("%s" % item2[0][0])
-            f.write(" %.2f" % item2[0][1])
+            f.write(" %d" % item2[0][1])
+            f.write(" %.2f" % item2[0][2])
             f.write(" %\n")
-        f.write("data:1152 gap:2% \n")
+        f.write("data:1152 gap:2% ****\n")
         for item3 in at_gap1152_2:
             f.write("at")
             f.write("%s" % item3[0][0])
-            f.write(" %.2f" % item3[0][1])
+            f.write(" %d" % item3[0][1])
+            f.write(" %.2f" % item3[0][2])
             f.write(" %\n")
         f.write("-------------------------------------- \n")
         
-        f.write("data:4608 gap:4% \n")
-        for item4 in at_gap4608_2:
+        f.write("data:4608 gap:4% ****\n")
+        for item4 in at_gap4608_4:
             f.write("at")
             f.write("%s" % item4[0][0])
-            f.write(" %.2f" % item4[0][1])
+            f.write(" %d" % item4[0][1])
+            f.write(" %.2f" % item4[0][2])
             f.write(" %\n")
-        f.write("data:2304 gap:4% \n")
-        for item5 in at_gap2304_2:
+        f.write("data:2304 gap:4% ****\n")
+        for item5 in at_gap2304_4:
             f.write("at")
             f.write("%s" % item5[0][0])
-            f.write(" %.2f" % item5[0][1])
+            f.write(" %d" % item5[0][1])
+            f.write(" %.2f" % item5[0][2])
             f.write(" %\n")
-        f.write("data:1152 gap:4% \n")
-        for item6 in at_gap1152_2:
+        f.write("data:1152 gap:4% ****\n")
+        for item6 in at_gap1152_4:
             f.write("at")
             f.write("%s" % item6[0][0])
-            f.write(" %.2f" % item6[0][1])
+            f.write(" %d" % item6[0][1])
+            f.write(" %.2f" % item6[0][2])
             f.write(" %\n")
         f.write("-------------------------------------- \n")
 
-        f.write("data:4608 gap:6% \n")
-        for item7 in at_gap4608_2:
+        f.write("data:4608 gap:6% ****\n")
+        for item7 in at_gap4608_6:
             f.write("at")
             f.write("%s" % item7[0][0])
-            f.write(" %.2f" % item7[0][1])
+            f.write(" %d" % item7[0][1])
+            f.write(" %.2f" % item7[0][2])
             f.write(" %\n")
-        f.write("data:2304 gap:6% \n")
-        for item8 in at_gap2304_2:
+        f.write("data:2304 gap:6% ****\n")
+        for item8 in at_gap2304_6:
             f.write("at")
             f.write("%s" % item8[0][0])
-            f.write(" %.2f" % item8[0][1])
+            f.write(" %d" % item8[0][1])
+            f.write(" %.2f" % item8[0][2])
             f.write(" %\n")
-        f.write("data:1152 gap:6% \n")
-        for item9 in at_gap1152_2:
+        f.write("data:1152 gap:6% ****\n")
+        for item9 in at_gap1152_6:
             f.write("at")
             f.write("%s" % item9[0][0])
-            f.write(" %.2f" % item9[0][1])
+            f.write(" %d" % item9[0][1])
+            f.write(" %.2f" % item9[0][2])
             f.write(" %\n")
         f.write("-------------------------------------- \n")
+        
+        # ------------------------------------------------------------------------------------------------- #
 
-    # print("data:4608 gap:2%")
-    # for i in at_gap4608_2:
-    #     print("at",i[0][0],"%.2f" % i[0][1], "%")
-    # print("data:2304 gap:2%")
-    # for i in at_gap2304_2:
-    #     print("at",i[0][0],"%.2f" % i[0][1], "%")
-    # print("data:1152 gap:2%")
-    # for i in at_gap1152_2:
-    #     print("at",i[0][0],"%.2f" % i[0][1], "%")
-    
-    # print("--------------------------------------")
-    
-    # print("data:4608 gap:2%")
-    # for i in at_gap4608_4:
-    #     print("at",i[0][0],"%.2f" % i[0][1], "%")
-    # print("data:2304 gap:4%")
-    # for i in at_gap2304_4:
-    #     print("at",i[0][0],"%.2f" % i[0][1], "%")
-    # print("data:1152 gap:4%")
-    # for i in at_gap1152_4:
-    #     print("at",i[0][0],"%.2f" % i[0][1], "%")
-    # print("--------------------------------------")
+        # #  874       4372     8820      11993     8223      12165     10123
+        # ss_temp6, ss_temp5, ss_temp4, ss_temp3, ss_temp2, ss_temp1, ss_temp12 = [], [], [], [], [], [], []
+        # ss_light6, ss_light5, ss_light4, ss_light3, ss_light2, ss_light1, ss_light12 = [], [], [], [], [], [], []
+        # ss_humid6, ss_humid5, ss_humid4, ss_humid3, ss_humid2, ss_humid1, ss_humid12 = [], [], [], [], [], [], []
 
-    # print("data:4608 gap:6%")
-    # for i in at_gap4608_6:
-    #     print("at",i[0][0],"%.2f" % i[0][1], "%")
-    # print("data:2304 gap:6%")
-    # for i in at_gap2304_6:
-    #     print("at",i[0][0],"%.2f" % i[0][1], "%")
-    # print("data:1152 gap:6%")
-    # for i in at_gap1152_6:
-    #     print("at",i[0][0],"%.2f" % i[0][1], "%")
-    # print("--------------------------------------")
+        # with open('Sensor_temp_light_humidity.csv', 'r', newline='') as csvnew:
+        #     read = csv.reader(csvnew)
+        #     for line in read:
+        #         if line[0] != '๏ปฟtimestamp' and line[0][1] == '/':
+        #             # print(int(line[0][0]))
+        #             eval('ss_temp%d' % (int(line[0][0]))).append(line[1])
+        #         elif line[0] != '๏ปฟtimestamp' and line[0][1] != '/':
+        #             # print(int(line[0][:2]))
+        #             eval('ss_temp%d' % (int(line[0][:2]))).append(line[1])
 
-    # for cm in range(len(cm_original)):
-    #     place = rd.randint(1, 19)
-    #     print(eval('at%d'% (place)))
-    #     print(" ")
-    #     print(eval('at%d'% (place))[0][:6])
-    #     print(" ")
-        # cm_original[cm].append(eval('at%d'% (place))[0][:6])
-    
+        # # for i in [6,5,4,3,2,1,12]:
+        # #     print(len(eval('ss_temp%d' % (i))))
+        
+        # # max
+        # ss_temp_2 = [ [] for _ in range(7)]
+        # ss_temp_4 = [ [] for _ in range(7)]
+        # ss_temp_6 = [ [] for _ in range(7)]
+
+        # for per in [2,4,6]:
+        #     for num, value in {0:6, 1:5, 2:4, 3:3, 4:2, 5:1, 6:12}.items():
+        #         cache2 = 0
+        #         count2 = 0
+        #         while cache2 != len(eval('ss_temp%d' % (value))) - 1:
+        #             old = float(eval('ss_temp%d'% (value))[cache2])
+        #             new = float(eval('ss_temp%d'% (value))[cache2+1])
+        #             diff = abs(((old - new) / old)*100)
+        #             # print(diff)
+        #             cache2 += 1
+        #             if diff > per:
+        #                 # print(diff)
+        #                 count2 += 1 
+        #         eval('ss_temp_%d'% (per))[num].append([value, (count2/len(eval('ss_temp%d'% (value))))*100])
+        
+        # print(ss_temp_2)
+        # print("")
+        # print(ss_temp_4)
+        # print("")
+        # print(ss_temp_6)
+
+        # # 800
+        # ss_temp800_2 = [ [] for _ in range(7)]
+        # ss_temp800_4 = [ [] for _ in range(7)]
+        # ss_temp800_6 = [ [] for _ in range(7)]
+
+        # for per in [2,4,6]:
+        #     for num, value in {0:6, 1:5, 2:4, 3:3, 4:2, 5:1, 6:12}.items():
+        #         cache2 = 0
+        #         count2 = 0
+        #         while cache2 != 800 - 1:
+        #             old = float(eval('ss_temp%d'% (value))[cache2])
+        #             new = float(eval('ss_temp%d'% (value))[cache2+1])
+        #             diff = abs(((old - new) / old)*100)
+        #             # print(diff)
+        #             cache2 += 1
+        #             if diff > per:
+        #                 # print(diff)
+        #                 count2 += 1 
+        #         eval('ss_temp800_%d'% (per))[num].append([value, (count2/800)*100])
+
+        # # 4000
+        # ss_temp4000_2 = [ [] for _ in range(7)]
+        # ss_temp4000_4 = [ [] for _ in range(7)]
+        # ss_temp4000_6 = [ [] for _ in range(7)]
+
+        # # 8000
+        # # 10000
 pull_data()
