@@ -428,7 +428,10 @@ def check_data(cluster_head, cluster_member, cache, collect_envi, \
                     if cluster_member[cm][5] == cec[0]:
                         old = float(cec[1])
                         new = float(eval('at%d'% (cluster_member[cm][4]))[0][cache])
-                        diff = abs(((old - new) / (old+new)/2)*100)
+                        if old - new >= 0:
+                            diff = abs(((old - new) / old)*100)
+                        else:
+                            diff = abs(((old - new) / new)*100)
                         if diff > diff_per:
                             # print(diff_per, diff)
                             send_or_not.append([cluster_member[cm][5], 1])
@@ -453,7 +456,10 @@ def check_data(cluster_head, cluster_member, cache, collect_envi, \
                     if cluster_head[ch][5] == cec[0]:
                         old = float(cec[1])
                         new = sum(sum_envi_ch[ch])/ float(len(sum_envi_ch[ch]))
-                        diff = abs(((old - new) / (old+new)/2)*100)
+                        if old - new >= 0:
+                            diff = abs(((old - new) / old)*100)
+                        else:
+                            diff = abs(((old - new) / new)*100)
                         if diff > diff_per:
                             # print(diff_per, diff)
                             send_or_not.append([cluster_head[ch][5], 1])
