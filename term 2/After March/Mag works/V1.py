@@ -12,7 +12,7 @@ def base_bs(num_base, pos_base, super_round, diff_per):
     for _ in range(num_base):
         bs_member.append(map(int, pos_base.split(',')))
     # append data to csv. file
-    with open('bs_member SR '+str(super_round)+' '+str(int(diff_per))+'.csv', 'w', newline='') as csvnew:
+    with open('bs_member SR '+str(super_round)+' '+str(diff_per)+'.csv', 'w', newline='') as csvnew:
         write = csv.writer(csvnew)
         for line in bs_member:
             write.writerow(line)
@@ -36,11 +36,11 @@ def random_cm(width, height, set_energy, density, t_value, super_round, diff_per
             cm_original.append([ random_x, random_y, set_energy, t_value, data_set, count+1])
         count += 1
     # append data to csv. file
-    with open('cm_original SR '+str(super_round)+' '+str(int(diff_per))+'.csv', 'w', newline='') as csvnew:
+    with open('cm_original SR '+str(super_round)+' '+str(diff_per)+'.csv', 'w', newline='') as csvnew:
         write = csv.writer(csvnew)
         for line1 in cm_original:
             write.writerow(line1)
-    with open('len_cm SR '+str(super_round)+' '+str(int(diff_per))+".txt", "w") as text_file:
+    with open('len_cm SR '+str(super_round)+' '+str(diff_per)+".txt", "w") as text_file:
         text_file.write(str(len_cm))
 
     return cm_original, len_cm
@@ -62,7 +62,7 @@ def random_cch(cm_original, len_cm, super_round, diff_per, count_lap, dead):
         if len(cch) == 0:
             random_cch(cm_original, len_cm, super_round, diff_per, count_lap, dead)
             
-        with open('check cch SR '+str(super_round)+' '+str(int(diff_per))+'.csv', 'a', newline='') as csvnew:
+        with open('check cch SR '+str(super_round)+' '+str(diff_per)+'.csv', 'a', newline='') as csvnew:
             write = csv.writer(csvnew)
             for line in cch:
                 write.writerow([count_lap, line[0],line[1],line[2], line[3]])
@@ -167,11 +167,11 @@ def comp_2(me_ch, shutdown, cluster_member, dead, super_round, diff_per):
     if dead == 0:
         for ch in me_ch:
             cluster_head.append(ch)
-            with open('cluster data SR '+str(super_round)+' '+str(int(diff_per))+'.csv', 'a', newline='') as csvnew:
+            with open('cluster data SR '+str(super_round)+' '+str(diff_per)+'.csv', 'a', newline='') as csvnew:
                 write = csv.writer(csvnew)
                 for line in [ch]:
                     write.writerow(line)
-        with open('cluster data SR '+str(super_round)+' '+str(int(diff_per))+'.csv', 'a', newline='') as csvnew:
+        with open('cluster data SR '+str(super_round)+' '+str(diff_per)+'.csv', 'a', newline='') as csvnew:
                 write = csv.writer(csvnew)
                 write.writerow('')
         
@@ -430,7 +430,6 @@ def check_data(cluster_head, cluster_member, cache, collect_envi, \
                         new = float(eval('at%d'% (cluster_member[cm][4]))[0][cache])
                         diff = abs(old - new) / ((old+new)/2)*100
                         if diff > diff_per:
-                            # print(diff_per, diff)
                             send_or_not.append([cluster_member[cm][5], 1])
                             cec[1] = new
                         else:
@@ -455,7 +454,6 @@ def check_data(cluster_head, cluster_member, cache, collect_envi, \
                         new = sum(sum_envi_ch[ch])/ float(len(sum_envi_ch[ch]))
                         diff = abs(old - new) / ((old+new)/2)*100
                         if diff > diff_per:
-                            # print(diff_per, diff)
                             send_or_not.append([cluster_head[ch][5], 1])
                             cec[1] = new
                         else:
@@ -597,13 +595,13 @@ def back_to_cm_dynamic(cluster_head, cluster_member, max_distance, count_lap, \
         for d in max_distance:
             if d[1] != 0:
                 log1.append([dead_round, count_lap, d[1], ch_t_compare[d[0]][1], ch_t_compare[d[0]][2]])
-        with open('data t and rd SR '+str(super_round)+' '+str(int(diff_per)) +'.csv', 'a', newline='') as csvnew:
+        with open('data t and rd SR '+str(super_round)+' '+str(diff_per) +'.csv', 'a', newline='') as csvnew:
             write = csv.writer(csvnew)
             for line1 in log1:
                 write.writerow(line1)
 
         log2= [[count_lap, len(cluster_head), count_ch_member, len_cm, len_cm-cm_out_of_range]]
-        with open('data cluster SR '+str(super_round)+' '+str(int(diff_per))+'.csv', 'a', newline='') as csvnew:
+        with open('data cluster SR '+str(super_round)+' '+str(diff_per)+'.csv', 'a', newline='') as csvnew:
             write = csv.writer(csvnew)
             for line in log2:
                 write.writerow(line)
@@ -658,16 +656,16 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
     bs_member, cm_original = [], []
     
     
-    with open('bs_member SR '+str(super_round)+' '+str(int(diff_per))+".csv", 'r') as csvnew:
+    with open('bs_member SR '+str(super_round)+' '+str(diff_per)+".csv", 'r') as csvnew:
         read = csv.reader(csvnew)
         for line1 in read:
             bs_member.append(list(map(int, line1)))
-    with open('cm_original SR '+str(super_round)+' '+str(int(diff_per))+".csv", 'r') as csvnew:
+    with open('cm_original SR '+str(super_round)+' '+str(diff_per)+".csv", 'r') as csvnew:
         read = csv.reader(csvnew)
         for line2 in read:
             cm_original.append(list(map(float, line2)))
     while True:
-        with open('len_cm SR '+str(super_round)+' '+str(int(diff_per))+".txt", "r") as text_file:
+        with open('len_cm SR '+str(super_round)+' '+str(diff_per)+".txt", "r") as text_file:
             len_cm = int(text_file.read())
 
         if cache > 4608 - 1:
@@ -757,17 +755,17 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
                 check_ch.append([count_lap,'ch',cluster_head[ch][:2],cluster_head[ch][2],cluster_head[ch][3]])
             for cm in cluster_member:
                 check_cm.append([count_lap,'cm',cm[:2],cm[2], cm[3]])
-            with open('check ch SR '+str(super_round)+' '+str(int(diff_per))+'.csv', 'a', newline='') as csvnew:
+            with open('check ch SR '+str(super_round)+' '+str(diff_per)+'.csv', 'a', newline='') as csvnew:
                 write = csv.writer(csvnew)
                 for line in check_ch:
                     write.writerow(line)
                 write.writerow(' ')
-            with open('check cm SR '+str(super_round)+' '+str(int(diff_per))+'.csv', 'a', newline='') as csvnew:
+            with open('check cm SR '+str(super_round)+' '+str(diff_per)+'.csv', 'a', newline='') as csvnew:
                 write = csv.writer(csvnew)
                 for line in check_cm:
                     write.writerow(line)
                 write.writerow(' ')
-            with open('used energy SR '+str(super_round)+' '+str(int(diff_per))+'.csv', 'a', newline='') as csvnew:
+            with open('used energy SR '+str(super_round)+' '+str(diff_per)+'.csv', 'a', newline='') as csvnew:
                 writer = csv.DictWriter(csvnew,  used_energy.keys())
                 if csvnew.tell == 0:
                     writer.writeheader()
@@ -784,19 +782,19 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
             check_cm = []
             for cm in cluster_member:
                 check_cm.append([count_lap,'cm',cm[:2],cm[2], cm[3]])
-            with open('check ch SR '+str(super_round)+' '+str(int(diff_per))+'.csv', 'a', newline='') as csvnew:
+            with open('check ch SR '+str(super_round)+' '+str(diff_per)+'.csv', 'a', newline='') as csvnew:
                 write = csv.writer(csvnew)
                 for line in check_ch:
                     write.writerow(line)
                 write.writerow(' ')
-            with open('check cm SR '+str(super_round)+' '+str(int(diff_per))+'.csv', 'a', newline='') as csvnew:
+            with open('check cm SR '+str(super_round)+' '+str(diff_per)+'.csv', 'a', newline='') as csvnew:
                 write = csv.writer(csvnew)
                 for line in check_cm:
                     write.writerow(line)
                 write.writerow(' ')
             print("rund"+str(t_value)+" DeadLAP : "+ str(count_lap-1))
 
-            with open('used energy SR '+str(super_round)+' '+str(int(diff_per))+'.csv', 'a', newline='') as csvnew:
+            with open('used energy SR '+str(super_round)+' '+str(diff_per)+'.csv', 'a', newline='') as csvnew:
                 writer = csv.DictWriter(csvnew, used_energy.keys())
                 if csvnew.tell == 0:
                     writer.writeheader()
@@ -805,12 +803,12 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
                     writer.writerow(used_energy)
                     
             dead_point = [dead_point]
-            with open('dead point SR '+str(super_round)+' '+str(int(diff_per))+'.csv', 'a', newline='') as csvnew:
+            with open('dead point SR '+str(super_round)+' '+str(diff_per)+'.csv', 'a', newline='') as csvnew:
                 write = csv.writer(csvnew)
                 for line in dead_point:
                     write.writerow(line)
             log3 = [[t_value, count_lap]]
-            with open('count lap SR '+str(super_round)+' '+str(int(diff_per))+'.csv', 'a', newline='') as csvnew:
+            with open('count lap SR '+str(super_round)+' '+str(diff_per)+'.csv', 'a', newline='') as csvnew:
                 write = csv.writer(csvnew)
                 for line in log3:
                     write.writerow(line)
@@ -839,10 +837,10 @@ for l in range(1):
     if l == 0:
         header = ['','','C1']
         fields = ['A1','B1','C1','D1','E1','F1','G1','H1','I1','J1','K1','L1']
-        with open('data t and rd SR '+str(super_round)+' '+str(int(diff_per)) +'.csv', 'a', newline='') as csvnew:
+        with open('data t and rd SR '+str(super_round)+' '+str(diff_per) +'.csv', 'a', newline='') as csvnew:
             write = csv.writer(csvnew)
             write.writerow(header)
-        with open('used energy SR '+str(super_round)+' '+str(int(diff_per)) +'.csv', 'a', newline='') as csvnew:
+        with open('used energy SR '+str(super_round)+' '+str(diff_per) +'.csv', 'a', newline='') as csvnew:
             write = csv.writer(csvnew)
             write.writerow(fields)
         print('start')
