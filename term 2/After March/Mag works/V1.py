@@ -514,7 +514,7 @@ def e_agg_sr(cluster_head, count_ch_member, pkt_data, fs, dead_point, dead,\
         for ch in range(len(cluster_head)):
             for son in send_or_not:
                 if cluster_head[ch][5] == son[0] and son[1] == 1:
-                    e_agg = (count_ch_member[ch]+1)*pkt_data*(fs*10)
+                    e_agg = (count_ch_member[ch]+1)*5 * (10 ** (-9))
                     if cluster_head[ch][2] - e_agg > 0:
                         cluster_head[ch][2] -= e_agg
                         used_energy['11'] = used_energy.get('11')+e_agg
@@ -831,16 +831,21 @@ r2 = r1*((2*math.log(10))**(0.5)) # meter
 decimal = 2
 decrease_t = 0.01
 increase_t = 0.01
-super_round = 10
-diff_per = 2.0
+super_round = 1
+diff_per = 1.0
 
 
-for l in range(100):
+for l in range(1):
     if l == 0:
+        header = ['','','C1']
+        fields = ['A1','B1','C1','D1','E1','F1','G1','H1','I1','J1','K1','L1']
         with open('data t and rd SR '+str(super_round)+' '+str(int(diff_per)) +'.csv', 'a', newline='') as csvnew:
             write = csv.writer(csvnew)
-            for line1 in[['','','C1']]:
-                write.writerow(line1)
+            write.writerow(header)
+        with open('used energy SR '+str(super_round)+' '+str(int(diff_per)) +'.csv', 'a', newline='') as csvnew:
+            write = csv.writer(csvnew)
+            write.writerow(fields)
+        print('start')
     start(width, height, density, num_base, pos_base, set_energy, pkt_control, pkt_data, \
             d_threshold, r1, r2, decimal, decrease_t, increase_t, l, super_round, diff_per)
 
