@@ -572,18 +572,21 @@ def optimize_t(cluster_head, cluster_member, cm_select, max_distance, decimal, \
             if max_distance[ch][1] > r1:
                 if cluster_head[ch][3] < 1:
                     if cluster_head[ch][2] >= e_avg*1.1:
-                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + increase_t, decimal)])
-                        cluster_head[ch][3] =  round(cluster_head[ch][3] + increase_t, decimal)
+                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + 0.01, decimal)])
+                        cluster_head[ch][3] =  round(cluster_head[ch][3] + 0.01, decimal)
                     elif cluster_head[ch][2] >= e_avg*1.05 and cluster_head[ch][2] < e_avg*1.1:
-                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + 0.0075, decimal)])
-                        cluster_head[ch][3] =  round(cluster_head[ch][3] + 0.0075, decimal)
-                    elif cluster_head[ch][2] > e_avg*0.95 and cluster_head[ch][2] < e_avg*1.05:
-                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + 0.005, decimal)])
-                        cluster_head[ch][3] =  round(cluster_head[ch][3] + 0.005, decimal)
-                    elif cluster_head[ch][2] <= e_avg*0.95 and cluster_head[ch][2] > e_avg*0.9:
-                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + 0.0025, decimal)])
-                        cluster_head[ch][3] =  round(cluster_head[ch][3] + 0.0025, decimal)
-                    elif cluster_head[ch][2] <= e_avg*0.9:
+                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + 0.008, decimal)])
+                        cluster_head[ch][3] =  round(cluster_head[ch][3] + 0.008, decimal)
+                    elif cluster_head[ch][2] >= e_avg and cluster_head[ch][2] < e_avg*1.05:
+                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + 0.006, decimal)])
+                        cluster_head[ch][3] =  round(cluster_head[ch][3] + 0.006, decimal)
+                    elif cluster_head[ch][2] >= e_avg*0.95 and cluster_head[ch][2] < e_avg:
+                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + 0.004, decimal)])
+                        cluster_head[ch][3] =  round(cluster_head[ch][3] + 0.004, decimal)
+                    elif cluster_head[ch][2] < e_avg*0.95 and cluster_head[ch][2] >= e_avg*0.9:
+                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + 0.002, decimal)])
+                        cluster_head[ch][3] =  round(cluster_head[ch][3] + 0.002, decimal)
+                    elif cluster_head[ch][2] < e_avg*0.9:
                         ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + 0, decimal)])
                         cluster_head[ch][3] =  round(cluster_head[ch][3] + 0, decimal)
                 else:
@@ -595,17 +598,20 @@ def optimize_t(cluster_head, cluster_member, cm_select, max_distance, decimal, \
                         ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - 0, decimal)])
                         cluster_head[ch][3] =  round(cluster_head[ch][3] - 0, decimal)
                     elif cluster_head[ch][2] >= e_avg*1.05 and cluster_head[ch][2] < e_avg*1.1:
-                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - 0.0025, decimal)])
-                        cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.0025, decimal)
-                    elif cluster_head[ch][2] > e_avg*0.95 and cluster_head[ch][2] < e_avg*1.05:
-                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - 0.005, decimal)])
-                        cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.005, decimal)
-                    elif cluster_head[ch][2] <= e_avg*0.95 and cluster_head[ch][2] > e_avg*0.9:
-                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - 0.0075, decimal)])
-                        cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.0075, decimal)
-                    elif cluster_head[ch][2] <= e_avg*0.9:
-                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - increase_t, decimal)])
-                        cluster_head[ch][3] =  round(cluster_head[ch][3] - increase_t, decimal)
+                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - 0.002, decimal)])
+                        cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.002, decimal)
+                    elif cluster_head[ch][2] >= e_avg and cluster_head[ch][2] < e_avg*1.05:
+                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - 0.004, decimal)])
+                        cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.004, decimal)
+                    elif cluster_head[ch][2] >= e_avg*0.95 and cluster_head[ch][2] < e_avg:
+                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - 0.006, decimal)])
+                        cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.006, decimal)
+                    elif cluster_head[ch][2] < e_avg*0.95 and cluster_head[ch][2] >= e_avg*0.9:
+                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - 0.008, decimal)])
+                        cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.008, decimal)
+                    elif cluster_head[ch][2] < e_avg*0.9:
+                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - 0.01, decimal)])
+                        cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.01, decimal)
                 else:
                     ch_t_compare.append([ch, cluster_head[ch][3], cluster_head[ch][3]])
             else:
@@ -619,28 +625,32 @@ def optimize_t(cluster_head, cluster_member, cm_select, max_distance, decimal, \
                 if cm_select[cm][0] == max_distance[d][0]:
                     if max_distance[d][1] > r1:
                         if cluster_member[cm][3] < 1:
-                            if cluster_member[cm][3] >= e_avg*1.1:
-                                cluster_member[cm][3] =  round(cluster_member[cm][3] + increase_t, decimal)
-                            elif cluster_member[cm][3] >= e_avg*1.05 and cluster_member[cm][3] < e_avg*1.1:
+                            if cluster_member[cm][2] >= e_avg*1.1:
+                                cluster_member[cm][3] =  round(cluster_member[cm][3] + 0.01, decimal)
+                            elif cluster_member[cm][2] >= e_avg*1.05 and cluster_member[cm][2] < e_avg*1.1:
                                 cluster_member[cm][3] =  round(cluster_member[cm][3] + 0.0075, decimal)
-                            elif cluster_member[cm][3] > e_avg*0.95 and cluster_member[cm][3] < e_avg*1.05:
+                            elif cluster_member[cm][2] >= e_avg and cluster_member[cm][2] < e_avg*1.05:
                                 cluster_member[cm][3] =  round(cluster_member[cm][3] + 0.005, decimal)
-                            elif cluster_member[cm][2] <= e_avg*0.95 and cluster_member[cm][2] > e_avg*0.9:
+                            elif cluster_member[cm][2] >= e_avg*0.95 and cluster_member[cm][2] < e_avg:
+                                cluster_member[cm][3] =  round(cluster_member[cm][3] + 0.005, decimal)
+                            elif cluster_member[cm][2] < e_avg*0.95 and cluster_member[cm][2] >= e_avg*0.9: 
                                 cluster_member[cm][3] =  round(cluster_member[cm][3] + 0.0025, decimal)
-                            elif cluster_member[cm][2] <= e_avg*0.9:
+                            elif cluster_member[cm][2] < e_avg*0.9:
                                 cluster_member[cm][3] =  round(cluster_member[cm][3] + 0, decimal)
                     elif max_distance[d][1] < r1:
                         if cluster_member[cm][3] > 0:
                             if cluster_member[cm][2] >= e_avg*1.1:
                                 cluster_member[cm][3] =  round(cluster_member[cm][3] - 0, decimal)
                             elif cluster_member[cm][2] >= e_avg*1.05 and cluster_member[cm][2] < e_avg*1.1:
-                                cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.0025, decimal)
-                            elif cluster_member[cm][2] > e_avg*0.95 and cluster_member[cm][2] < e_avg*1.05:
-                                cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.005, decimal)
-                            elif cluster_member[cm][2] <= e_avg*0.95 and cluster_member[cm][2] > e_avg*0.9:
-                                cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.0075, decimal)
-                            elif cluster_member[cm][2] <= e_avg*0.9:
-                                cluster_member[cm][3] =  round(cluster_member[cm][3] - increase_t, decimal)  
+                                cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.002, decimal)
+                            elif cluster_member[cm][2] >= e_avg and cluster_member[cm][2] < e_avg*1.05:
+                                cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.004, decimal)
+                            elif cluster_member[cm][2] >= e_avg*0.95 and cluster_member[cm][2] < e_avg:
+                                cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.006, decimal)
+                            elif cluster_member[cm][2] < e_avg*0.95 and cluster_member[cm][2] >= e_avg*0.9:
+                                cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.008, decimal)
+                            elif cluster_member[cm][2] < e_avg*0.9:
+                                cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.01, decimal) 
                              
 
 
