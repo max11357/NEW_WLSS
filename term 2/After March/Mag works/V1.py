@@ -623,16 +623,22 @@ def optimize_t(cluster_head, cluster_member, cm_select, max_distance, decimal, \
                         elif cluster_member[cm][2] <= e_avg*0.9:
                             cluster_member[cm][3] =  round(cluster_member[cm][3] + 0, decimal)
                     elif max_distance[d][1] < r1 and cluster_member[cm][3] > 0:
-                        if cluster_head[ch][2] >= e_avg*1.1:
-                            cluster_head[ch][3] =  round(cluster_head[ch][3] - 0, decimal)
-                        elif cluster_head[ch][2] >= e_avg*1.05 and cluster_head[ch][2] < e_avg*1.1:
-                            cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.0025, decimal)
-                        elif cluster_head[ch][2] > e_avg*0.95 and cluster_head[ch][2] < e_avg*1.05:
-                            cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.005, decimal)
-                        elif cluster_head[ch][2] <= e_avg*0.95 and cluster_head[ch][2] > e_avg*0.9:
-                            cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.0075, decimal)
-                        elif cluster_head[ch][2] <= e_avg*0.9:
-                            cluster_head[ch][3] =  round(cluster_head[ch][3] - increase_t, decimal)
+                        if cluster_member[cm][2] >= e_avg*1.1:
+                            cluster_member[cm][3] =  round(cluster_member[cm][3] - 0, decimal)
+                        elif cluster_member[cm][2] >= e_avg*1.05 and cluster_member[cm][2] < e_avg*1.1:
+                            cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.0025, decimal)
+                        elif cluster_member[cm][2] > e_avg*0.95 and cluster_member[cm][2] < e_avg*1.05:
+                            cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.005, decimal)
+                        elif cluster_member[cm][2] <= e_avg*0.95 and cluster_member[cm][2] > e_avg*0.9:
+                            cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.0075, decimal)
+                        elif cluster_member[cm][2] <= e_avg*0.9:
+                            cluster_member[cm][3] =  round(cluster_member[cm][3] - increase_t, decimal)
+
+        for k in cluster_head:
+            print(k[3])
+        for p in cluster_member:
+            print(p[3])
+        print("-------------")        
 
 
     return cluster_head, cluster_member, dead, ch_t_compare, check_optimize_t
