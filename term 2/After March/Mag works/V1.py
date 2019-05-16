@@ -902,12 +902,12 @@ decimal = 4
 decrease_t = 0.01
 increase_t = 0.01
 super_round = 1
-diff_per = 1.0
+diff_per = 1
 
 
 for l in range(1):
     if l == 0:
-        header = ['','','C1']
+        header = ['A1','B1','C1']
         fields = ['A1','B1','C1','D1','E1','F1','G1','H1','I1','J1','K1','L1']
         with open('data t and rd SR '+str(super_round)+' '+str(diff_per) +'.csv', 'a', newline='') as csvnew:
             write = csv.writer(csvnew)
