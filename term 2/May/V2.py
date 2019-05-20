@@ -587,17 +587,17 @@ def optimize_t(cluster_head, cluster_member, cm_select, max_distance, decimal, \
             
             elif max_distance[ch][1] < r1:
                 diff = energy/e_avg
-                t_change = abs(1.1-diff)*0.5
+                t_change = abs(1.1-diff)*0.05
                 
-                if diff >= 1.1 and round(cluster_head[ch][3] - 0.1, decimal) > 0:
-                    ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - 0.0, decimal)])
-                    cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.0, decimal)
+                if diff >= 1.1 and round(cluster_head[ch][3] - 0.01, decimal) > 0:
+                    ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - 0.00, decimal)])
+                    cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.00, decimal)
                 elif diff > 0.9 and diff < 1.1 and round(cluster_head[ch][3] - t_change, decimal) > 0:
                     ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - t_change, decimal)])
                     cluster_head[ch][3] =  round(cluster_head[ch][3] - t_change, decimal)
                 elif diff <= 0.9:
-                    ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - 0.1, decimal)])
-                    cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.1, decimal)   
+                    ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - 0.01, decimal)])
+                    cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.01, decimal)   
                 else:
                     ch_t_compare.append([ch, cluster_head[ch][3], cluster_head[ch][3]])
             else:
@@ -612,24 +612,24 @@ def optimize_t(cluster_head, cluster_member, cm_select, max_distance, decimal, \
                 if cm_select[cm][0] == max_distance[d][0]:
                     if max_distance[d][1] > r1:
                         diff = energy/e_avg
-                        t_change = abs(0.9-diff)*0.5
+                        t_change = abs(0.9-diff)*0.05
                         
-                        if diff >= 1.1 and round(cluster_member[cm][3] + 0.1, decimal) < 1:
-                            cluster_member[cm][3] =  round(cluster_member[cm][3] + 0.1, decimal)
+                        if diff >= 1.1 and round(cluster_member[cm][3] + 0.01, decimal) < 1:
+                            cluster_member[cm][3] =  round(cluster_member[cm][3] + 0.01, decimal)
                         elif diff > 0.9 and diff < 1.1 and round(cluster_member[cm][3] + t_change, decimal) < 1:                               
                             cluster_member[cm][3] =  round(cluster_member[cm][3] + t_change, decimal)
                         elif diff <= 0.9:
-                            cluster_member[cm][3] =  round(cluster_member[cm][3] + 0.0, decimal)
+                            cluster_member[cm][3] =  round(cluster_member[cm][3] + 0.00, decimal)
                     elif max_distance[d][1] < r1:
                         diff = energy/e_avg
-                        t_change = abs(1.1-diff)*0.5
+                        t_change = abs(1.1-diff)*0.05
                         
-                        if diff >= 1.1 and round(cluster_member[cm][3] - 0.1, decimal) > 0:
-                            cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.0, decimal)
+                        if diff >= 1.1 and round(cluster_member[cm][3] - 0.01, decimal) > 0:
+                            cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.00, decimal)
                         elif diff > 0.9 and diff < 1.1 and round(cluster_member[cm][3] - t_change, decimal) > 0: 
                             cluster_member[cm][3] =  round(cluster_member[cm][3] - t_change, decimal)
                         elif diff <= 0.9:
-                            cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.1, decimal)
+                            cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.01, decimal)
                                 
                              
 
