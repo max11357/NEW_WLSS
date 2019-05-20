@@ -564,46 +564,42 @@ def optimize_t(cluster_head, cluster_member, cm_select, max_distance, decimal, \
             avg_e_ch[ch].append(cluster_head[ch][2]) # ch add data
         for cm in range(len(cluster_member)):
             avg_e_ch[cm_select[cm][0]].append(cluster_member[cm][2]) # cm add data  
+        
         for ch in range(len(cluster_head)):
-            
             e_avg = sum(avg_e_ch[ch]) / len(avg_e_ch[ch]) # find AVG each list of CH
             energy = cluster_head[ch][2]
+            
             if max_distance[ch][1] > r1:
-                if cluster_head[ch][3] < 1:
-                    diff = energy/e_avg
-                    if diff > 1.1:
-                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + 0.001, decimal)])
-                        cluster_head[ch][3] =  round(cluster_head[ch][3] + 0.01, decimal)
-                    elif diff > 0.9 and diff <= 1.1:
-                        t_change = abs(diff-0.9)*0.005
-                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + t_change, decimal)])
-                        cluster_head[ch][3] =  round(cluster_head[ch][3] + t_change, decimal)
-                    elif diff <= 0.9:
-                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + 0.000, decimal)])
-                        cluster_head[ch][3] =  round(cluster_head[ch][3] + 0.000, decimal)
+                diff = energy/e_avg
+                t_change = abs(0.9-diff)*0.5
+                
+                if diff >= 1.1 and round(cluster_head[ch][3] + 0.1, decimal) < 1:
+                    ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + 0.1, decimal)])
+                    cluster_head[ch][3] =  round(cluster_head[ch][3] + 0.1, decimal)
+                elif diff > 0.9 and diff < 1.1 and round(cluster_head[ch][3] + t_change, decimal) < 1:
+                    ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + t_change, decimal)])
+                    cluster_head[ch][3] =  round(cluster_head[ch][3] + t_change, decimal)
+                elif diff <= 0.9:
+                    ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + 0.0, decimal)])
+                    cluster_head[ch][3] =  round(cluster_head[ch][3] + 0.0, decimal)
                 else:
-                    cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.001, decimal)
                     ch_t_compare.append([ch, cluster_head[ch][3], cluster_head[ch][3]])
             
             elif max_distance[ch][1] < r1:
-                if cluster_head[ch][3] > 0:
-                    diff = energy/e_avg
-                    if diff > 1.1:
-                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - 0.000, decimal)])
-                        cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.000, decimal)
-                    elif diff > 0.9 and diff <= 1.1:
-                        t_change = abs(((1.1 - diff))*0.005)
-                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - t_change, decimal)])
-                        cluster_head[ch][3] =  round(cluster_head[ch][3] - t_change, decimal)
-
-                    elif diff <= 0.9:
-                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - 0.001, decimal)])
-                        cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.001, decimal)
-                        
+                diff = energy/e_avg
+                t_change = abs(1.1-diff)*0.5
+                
+                if diff >= 1.1 and round(cluster_head[ch][3] - 0.1, decimal) > 0:
+                    ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - 0.0, decimal)])
+                    cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.0, decimal)
+                elif diff > 0.9 and diff < 1.1 and round(cluster_head[ch][3] - t_change, decimal) > 0:
+                    ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - t_change, decimal)])
+                    cluster_head[ch][3] =  round(cluster_head[ch][3] - t_change, decimal)
+                elif diff <= 0.9:
+                    ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - 0.1, decimal)])
+                    cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.1, decimal)   
                 else:
-                    if cluster_head[ch][3] < 1:
-                        cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.01, decimal)
-                        ch_t_compare.append([ch, cluster_head[ch][3], cluster_head[ch][3]])
+                    ch_t_compare.append([ch, cluster_head[ch][3], cluster_head[ch][3]])
             else:
                 ch_t_compare.append([ch, cluster_head[ch][3], cluster_head[ch][3]])
 
@@ -615,27 +611,25 @@ def optimize_t(cluster_head, cluster_member, cm_select, max_distance, decimal, \
                 energy = cluster_member[cm][2]
                 if cm_select[cm][0] == max_distance[d][0]:
                     if max_distance[d][1] > r1:
-                        if cluster_member[cm][3] < 1:
-                            diff = energy/e_avg
-                            if diff > 1.1:
-                                cluster_member[cm][3] =  round(cluster_member[cm][3] + 0.001, decimal)
-                            elif diff > 0.9 and diff <= 1.1:                                
-                                t_change = abs(diff-0.9)*0.005
-                                cluster_member[cm][3] =  round(cluster_member[cm][3] + t_change, decimal)
-                            elif diff <= 0.9:
-                                cluster_member[cm][3] =  round(cluster_member[cm][3] + 0.000, decimal)
+                        diff = energy/e_avg
+                        t_change = abs(0.9-diff)*0.5
+                        
+                        if diff >= 1.1 and round(cluster_member[cm][3] + 0.1, decimal) < 1:
+                            cluster_member[cm][3] =  round(cluster_member[cm][3] + 0.1, decimal)
+                        elif diff > 0.9 and diff < 1.1 and round(cluster_member[cm][3] + t_change, decimal) < 1:                               
+                            cluster_member[cm][3] =  round(cluster_member[cm][3] + t_change, decimal)
+                        elif diff <= 0.9:
+                            cluster_member[cm][3] =  round(cluster_member[cm][3] + 0.0, decimal)
                     elif max_distance[d][1] < r1:
-                        if cluster_member[cm][3] > 0:
-                            
-                            diff = energy/e_avg
-                            if diff > 1.1:
-                                cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.000, decimal)
-                            elif diff > 0.9 and diff <= 1.1:
-                                t_change = abs(((1.1 - diff))*0.005)
-##                                print(t_change)
-                                cluster_member[cm][3] =  round(cluster_member[cm][3] - t_change, decimal)
-                            elif diff <= 0.9:
-                                cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.001, decimal)
+                        diff = energy/e_avg
+                        t_change = abs(1.1-diff)*0.5
+                        
+                        if diff >= 1.1 and round(cluster_member[cm][3] - 0.1, decimal) > 0:
+                            cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.0, decimal)
+                        elif diff > 0.9 and diff < 1.1 and round(cluster_member[cm][3] - t_change, decimal) > 0: 
+                            cluster_member[cm][3] =  round(cluster_member[cm][3] - t_change, decimal)
+                        elif diff <= 0.9:
+                            cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.1, decimal)
                                 
                              
 
