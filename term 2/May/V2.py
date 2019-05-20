@@ -429,7 +429,7 @@ def check_data(cluster_head, cluster_member, cache, collect_envi, \
                         old = float(cec[1])
                         new = float(eval('at%d'% (cluster_member[cm][4]))[0][cache])
                         diff = abs(old - new) / ((old+new)/2)*100
-                        if diff > diff_per:
+                        if diff >= diff_per:
                             # print(diff_per, diff)
                             send_or_not.append([cluster_member[cm][5], 1])
                             cec[1] = new
@@ -454,7 +454,7 @@ def check_data(cluster_head, cluster_member, cache, collect_envi, \
                         old = float(cec[1])
                         new = sum(sum_envi_ch[ch])/ float(len(sum_envi_ch[ch]))
                         diff = abs(old - new) / ((old+new)/2)*100
-                        if diff > diff_per_ch:
+                        if diff >= diff_per_ch:
                             # print(diff_per, diff)
                             send_or_not.append([cluster_head[ch][5], 1])
                             cec[1] = new
@@ -512,7 +512,7 @@ def e_agg_sr(cluster_head, count_ch_member, pkt_data, fs, dead_point, dead,\
     if dead == 0:
         for ch in range(len(cluster_head)):
             for son in send_or_not:
-                if cluster_head[ch][5] == son[0] and son[1] == 1:
+                if cluster_head[ch][5] == son[0] and son[1] == 1 and used_energy['10'] != 0:
                     e_agg = (count_ch_member[ch]+1)*(5*(10**(-9)))
                     if cluster_head[ch][2] - e_agg > 0:
                         cluster_head[ch][2] -= e_agg
@@ -534,7 +534,7 @@ def e_route_sr(cluster_head, bs_member, pkt_data, elec_tran, elec_rec, fs, mpf, 
         for ch in range(len(cluster_head)):
             # Send pkt data [clsuter-->bs]
             for son in send_or_not:
-                if cluster_head[ch][5] == son[0] and son[1] == 1:
+                if cluster_head[ch][5] == son[0] and son[1] == 1 and used_energy['10'] != 0:
                     distance = math.sqrt((int(base_x[0] - cluster_head[ch][0])**2 + int(base_y[0] - cluster_head[ch][1])**2))
                     e_tx = (elec_tran + (mpf*(distance**4)))*pkt_data
                     if cluster_head[ch][2] - e_tx  > 0:
@@ -574,11 +574,11 @@ def optimize_t(cluster_head, cluster_member, cm_select, max_distance, decimal, \
                     if diff > 1.1:
                         ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + 0.001, decimal)])
                         cluster_head[ch][3] =  round(cluster_head[ch][3] + 0.01, decimal)
-                    elif diff >= 0.9 and diff <= 1.1:
+                    elif diff > 0.9 and diff <= 1.1:
                         t_change = abs(diff-0.9)*0.005
                         ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + t_change, decimal)])
                         cluster_head[ch][3] =  round(cluster_head[ch][3] + t_change, decimal)
-                    elif diff < 0.9:
+                    elif diff <= 0.9:
                         ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + 0.000, decimal)])
                         cluster_head[ch][3] =  round(cluster_head[ch][3] + 0.000, decimal)
                 else:
@@ -591,12 +591,12 @@ def optimize_t(cluster_head, cluster_member, cm_select, max_distance, decimal, \
                     if diff > 1.1:
                         ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - 0.000, decimal)])
                         cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.000, decimal)
-                    elif diff >= 0.9 and diff <= 1.1:
+                    elif diff > 0.9 and diff <= 1.1:
                         t_change = abs(((1.1 - diff))*0.005)
                         ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - t_change, decimal)])
                         cluster_head[ch][3] =  round(cluster_head[ch][3] - t_change, decimal)
 
-                    elif diff < 0.9:
+                    elif diff <= 0.9:
                         ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - 0.001, decimal)])
                         cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.001, decimal)
                         
@@ -619,10 +619,10 @@ def optimize_t(cluster_head, cluster_member, cm_select, max_distance, decimal, \
                             diff = energy/e_avg
                             if diff > 1.1:
                                 cluster_member[cm][3] =  round(cluster_member[cm][3] + 0.001, decimal)
-                            elif diff >= 0.9 and diff <= 1.1:                                
+                            elif diff > 0.9 and diff <= 1.1:                                
                                 t_change = abs(diff-0.9)*0.005
                                 cluster_member[cm][3] =  round(cluster_member[cm][3] + t_change, decimal)
-                            elif diff < 0.9:
+                            elif diff <= 0.9:
                                 cluster_member[cm][3] =  round(cluster_member[cm][3] + 0.000, decimal)
                     elif max_distance[d][1] < r1:
                         if cluster_member[cm][3] > 0:
@@ -630,11 +630,11 @@ def optimize_t(cluster_head, cluster_member, cm_select, max_distance, decimal, \
                             diff = energy/e_avg
                             if diff > 1.1:
                                 cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.000, decimal)
-                            elif diff >= 0.9 and diff <= 1.1:
+                            elif diff > 0.9 and diff <= 1.1:
                                 t_change = abs(((1.1 - diff))*0.005)
 ##                                print(t_change)
                                 cluster_member[cm][3] =  round(cluster_member[cm][3] - t_change, decimal)
-                            elif diff < 0.9:
+                            elif diff <= 0.9:
                                 cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.001, decimal)
                                 
                              
@@ -888,11 +888,11 @@ decimal = 6
 decrease_t = 0.01
 increase_t = 0.01
 super_round = 1
-diff_per = 2
+diff_per = 1
 diff_per_ch = 1
 
 
-for l in range(1):
+for l in range(30):
     if l == 0:
         header = ['A1','B1','C1']
         fields = ['A1','B1','C1','D1','E1','F1','G1','H1','I1','J1','K1','L1']
