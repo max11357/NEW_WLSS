@@ -174,10 +174,8 @@ def comp_2(me_ch, shutdown, cluster_member, dead, super_round, diff_per):
 ##        with open('cluster data SR '+str(super_round)+' '+str(diff_per)+'.csv', 'a', newline='') as csvnew:
 ##                write = csv.writer(csvnew)
 ##                write.writerow('')
-        
         for cm in shutdown:
             cluster_member.append(cm)
-    
 
     return cluster_head, cluster_member
 
@@ -224,7 +222,6 @@ def e_dis(cluster_head, cluster_member, pkt_control, elec_tran, \
 
 
     return cluster_head, cluster_member, dead, dead_point, used_energy
-
 
 def cm_choose_ch(cluster_head, cluster_member, r2, dead):
     cm_select = []
@@ -299,7 +296,6 @@ def e_join(cluster_head, cluster_member, cm_select, pkt_control, elec_tran,\
                     dead_point.append('6')
                     dead = 1
 
-
     return cluster_head, cluster_member, dead, dead_point, used_energy
 
 
@@ -344,7 +340,6 @@ def calculate_some_data(cm_select, log_cm_select, amount_cm_in_ch, dead):
         # print("-----")
         # for i in max_distance: print(i)
         # print("")
-        
         # collect how many nodes out of range
         for i in cm_select:
             if i[0] == -1:
@@ -394,12 +389,11 @@ def e_conf(cluster_head, cluster_member, pkt_control, elec_tran, \
                         dead_point.append('8')
                         dead = 1
 
-
     return cluster_head, cluster_member, dead, dead_point, used_energy
 
 
 def check_data(cluster_head, cluster_member, cache, collect_envi, \
-        cm_select, count_sr, diff_per, dead, diff_per_ch):
+        cm_select, count_sr, diff_per, dead, diff_per_ch, super_round, count_lap):
 
     # pull data
     at1, at2, at3, at4, at5, at6, at7, at8, at9, at10, \
@@ -415,14 +409,17 @@ def check_data(cluster_head, cluster_member, cache, collect_envi, \
     # calculate how many percentage difference of data between each round.
     send_or_not = []
     check_super_round = 1
+    real_send = [count_lap, len(cluster_member)]
+    
     if dead == 0:
         # cm
         if count_sr == 0:
             for cm in range(len(cluster_member)):
                 send_or_not.append([cluster_member[cm][5], 1])
                 collect_envi.append([cluster_member[cm][5], eval('at%d'% (cluster_member[cm][4]))[0][cache]])
-
+            real_send.append(len(cluster_member))
         else:
+            real_cm_send  = 0
             for cm in range(len(cluster_member)):
                 for cec in collect_envi:
                     if cluster_member[cm][5] == cec[0]:
@@ -430,22 +427,27 @@ def check_data(cluster_head, cluster_member, cache, collect_envi, \
                         new = float(eval('at%d'% (cluster_member[cm][4]))[0][cache])
                         diff = abs(old - new) / ((old+new)/2)*100
                         if diff >= diff_per:
+                            real_cm_send += 1 # real CM send
                             # print(diff_per, diff)
                             send_or_not.append([cluster_member[cm][5], 1])
                             cec[1] = new
                         else:
                             send_or_not.append([cluster_member[cm][5], 0])
+            real_send.append(real_cm_send)
         # ch
+        real_send.append(len(cluster_head))
         sum_envi_ch = [ [] for _ in range(len(cluster_head))]
         for cm in range(len(cluster_member)):
             sum_envi_ch[cm_select[cm][0]].append(float(collect_envi[cm][1]))
         if count_sr == 0:
+            real_send.append(len(cluster_head))
             for ch in range(len(cluster_head)):
                 sum_envi_ch[ch].append(float(eval('at%d'% (cluster_head[ch][4]))[0][cache]))
             for ch in range(len(cluster_head)): 
                 send_or_not.append([cluster_head[ch][5], 1])
                 collect_envi.append([cluster_head[ch][5], sum(sum_envi_ch[ch])/ float(len(sum_envi_ch[ch]))])
         else:
+            real_ch_send = 0
             for ch in range(len(cluster_head)):
                 sum_envi_ch[ch].append(float(eval('at%d'% (cluster_head[ch][4]))[0][cache]))
             for ch in range(len(cluster_head)):
@@ -455,12 +457,17 @@ def check_data(cluster_head, cluster_member, cache, collect_envi, \
                         new = sum(sum_envi_ch[ch])/ float(len(sum_envi_ch[ch]))
                         diff = abs(old - new) / ((old+new)/2)*100
                         if diff >= diff_per_ch:
-                            # print(diff_per, diff)
+                            real_ch_send += 1 # real CM send
                             send_or_not.append([cluster_head[ch][5], 1])
                             cec[1] = new
                         else:
                             send_or_not.append([cluster_head[ch][5], 0])
+            real_send.append(real_ch_send)
         cache += 1
+        with open('real send '+str(super_round)+' '+str(diff_per)+'.csv', 'a', newline='') as csvnew:
+            write = csv.writer(csvnew)
+            for line in [real_send]:
+                write.writerow(line)
     
     return cache, send_or_not, collect_envi, check_super_round
 
@@ -502,7 +509,6 @@ def e_intra_sr(cluster_head, cluster_member, cm_select, pkt_data, elec_tran,\
                         dead_point.append('10')
                         dead = 1   
 
-
     return cluster_head, cluster_member, dead, dead_point, used_energy
 
 
@@ -521,7 +527,6 @@ def e_agg_sr(cluster_head, count_ch_member, pkt_data, fs, dead_point, dead,\
                         dead_point = cluster_head[ch]
                         dead_point.append('11')
                         dead = 1
-
 
     return cluster_head, dead, dead_point,  used_energy
 
@@ -564,45 +569,44 @@ def optimize_t(cluster_head, cluster_member, cm_select, max_distance, decimal, \
             avg_e_ch[ch].append(cluster_head[ch][2]) # ch add data
         for cm in range(len(cluster_member)):
             avg_e_ch[cm_select[cm][0]].append(cluster_member[cm][2]) # cm add data  
-        
         for ch in range(len(cluster_head)):
+            
             e_avg = sum(avg_e_ch[ch]) / len(avg_e_ch[ch]) # find AVG each list of CH
             energy = cluster_head[ch][2]
-            
             if max_distance[ch][1] > r1:
-                diff = energy/e_avg
-                t_change = abs(0.9-diff)*0.5
-                
-                if diff >= 1.1 and round(cluster_head[ch][3] + 0.1, decimal) < 1:
-                    ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + 0.1, decimal)])
-                    cluster_head[ch][3] =  round(cluster_head[ch][3] + 0.1, decimal)
-                elif diff > 0.9 and diff < 1.1 and round(cluster_head[ch][3] + t_change, decimal) < 1:
-                    ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + t_change, decimal)])
-                    cluster_head[ch][3] =  round(cluster_head[ch][3] + t_change, decimal)
-                elif diff <= 0.9:
-                    ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + 0.0, decimal)])
-                    cluster_head[ch][3] =  round(cluster_head[ch][3] + 0.0, decimal)
+                if cluster_head[ch][3] < 1:
+                    diff = energy/e_avg
+                    if diff > 1.1:
+                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + 0.001, decimal)])
+                        cluster_head[ch][3] =  round(cluster_head[ch][3] + 0.01, decimal)
+                    elif diff > 0.9 and diff <= 1.1:
+                        t_change = abs(diff-0.9)*0.005
+                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + t_change, decimal)])
+                        cluster_head[ch][3] =  round(cluster_head[ch][3] + t_change, decimal)
+                    elif diff <= 0.9:
+                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + 0.000, decimal)])
+                        cluster_head[ch][3] =  round(cluster_head[ch][3] + 0.000, decimal)
                 else:
                     ch_t_compare.append([ch, cluster_head[ch][3], cluster_head[ch][3]])
             
             elif max_distance[ch][1] < r1:
-                diff = energy/e_avg
-                t_change = abs(1.1-diff)*0.05
-                
-                if diff >= 1.1 and round(cluster_head[ch][3] - 0.01, decimal) > 0:
-                    ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - 0.00, decimal)])
-                    cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.00, decimal)
-                elif diff > 0.9 and diff < 1.1 and round(cluster_head[ch][3] - t_change, decimal) > 0:
-                    ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - t_change, decimal)])
-                    cluster_head[ch][3] =  round(cluster_head[ch][3] - t_change, decimal)
-                elif diff <= 0.9:
-                    ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - 0.01, decimal)])
-                    cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.01, decimal)   
+                if cluster_head[ch][3] > 0:
+                    diff = energy/e_avg
+                    if diff > 1.1:
+                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - 0.000, decimal)])
+                        cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.000, decimal)
+                    elif diff > 0.9 and diff <= 1.1:
+                        t_change = abs(((1.1 - diff))*0.005)
+                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - t_change, decimal)])
+                        cluster_head[ch][3] =  round(cluster_head[ch][3] - t_change, decimal)
+
+                    elif diff <= 0.9:
+                        ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] - 0.001, decimal)])
+                        cluster_head[ch][3] =  round(cluster_head[ch][3] - 0.001, decimal)
                 else:
                     ch_t_compare.append([ch, cluster_head[ch][3], cluster_head[ch][3]])
             else:
                 ch_t_compare.append([ch, cluster_head[ch][3], cluster_head[ch][3]])
-
 
         for d in range(len(max_distance)):
             e_avg = sum(avg_e_ch[d]) / len(avg_e_ch[d]) # find AVG each list of CH
@@ -611,28 +615,26 @@ def optimize_t(cluster_head, cluster_member, cm_select, max_distance, decimal, \
                 energy = cluster_member[cm][2]
                 if cm_select[cm][0] == max_distance[d][0]:
                     if max_distance[d][1] > r1:
-                        diff = energy/e_avg
-                        t_change = abs(0.9-diff)*0.05
-                        
-                        if diff >= 1.1 and round(cluster_member[cm][3] + 0.01, decimal) < 1:
-                            cluster_member[cm][3] =  round(cluster_member[cm][3] + 0.01, decimal)
-                        elif diff > 0.9 and diff < 1.1 and round(cluster_member[cm][3] + t_change, decimal) < 1:                               
-                            cluster_member[cm][3] =  round(cluster_member[cm][3] + t_change, decimal)
-                        elif diff <= 0.9:
-                            cluster_member[cm][3] =  round(cluster_member[cm][3] + 0.00, decimal)
+                        if cluster_member[cm][3] < 1:
+                            diff = energy/e_avg
+                            if diff > 1.1:
+                                cluster_member[cm][3] =  round(cluster_member[cm][3] + 0.001, decimal)
+                            elif diff > 0.9 and diff <= 1.1:                                
+                                t_change = abs(diff-0.9)*0.005
+                                cluster_member[cm][3] =  round(cluster_member[cm][3] + t_change, decimal)
+                            elif diff <= 0.9:
+                                cluster_member[cm][3] =  round(cluster_member[cm][3] + 0.000, decimal)
                     elif max_distance[d][1] < r1:
-                        diff = energy/e_avg
-                        t_change = abs(1.1-diff)*0.05
-                        
-                        if diff >= 1.1 and round(cluster_member[cm][3] - 0.01, decimal) > 0:
-                            cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.00, decimal)
-                        elif diff > 0.9 and diff < 1.1 and round(cluster_member[cm][3] - t_change, decimal) > 0: 
-                            cluster_member[cm][3] =  round(cluster_member[cm][3] - t_change, decimal)
-                        elif diff <= 0.9:
-                            cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.01, decimal)
-                                
-                             
-
+                        if cluster_member[cm][3] > 0:
+                            
+                            diff = energy/e_avg
+                            if diff > 1.1:
+                                cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.000, decimal)
+                            elif diff > 0.9 and diff <= 1.1:
+                                t_change = abs(((1.1 - diff))*0.005)
+                                cluster_member[cm][3] =  round(cluster_member[cm][3] - t_change, decimal)
+                            elif diff <= 0.9:
+                                cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.001, decimal)
 
     return cluster_head, cluster_member, dead, ch_t_compare, check_optimize_t
 
@@ -768,7 +770,7 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
 
         cache, send_or_not, collect_envi, check_super_round = \
         check_data(cluster_head, cluster_member, cache, collect_envi, cm_select, count_sr, \
-            diff_per, dead, diff_per_ch)
+            diff_per, dead, diff_per_ch, super_round, count_lap)
 
 
         cluster_head, cluster_member, dead, dead_point, used_energy = \
@@ -881,12 +883,12 @@ r2 = r1*((2*math.log(10))**(0.5)) # meter
 decimal = 6
 decrease_t = 0.01
 increase_t = 0.01
-super_round = 1
-diff_per = 1
+super_round = 
+diff_per = 
 diff_per_ch = 1
 
 
-for l in range(30):
+for l in range(100):
     if l == 0:
         header = ['A1','B1','C1']
         fields = ['A1','B1','C1','D1','E1','F1','G1','H1','I1','J1','K1','L1']
@@ -896,6 +898,10 @@ for l in range(30):
         with open('used energy SR '+str(super_round)+' '+str(diff_per) +'.csv', 'a', newline='') as csvnew:
             write = csv.writer(csvnew)
             write.writerow(fields)
+        header1 = ['lap','num CM','CM send','num CH','CH send']
+        with open('real send '+str(super_round)+' '+str(diff_per) +'.csv', 'a', newline='') as csvnew:
+            write = csv.writer(csvnew)
+            write.writerow(header1)
         print('start')
     start(width, height, density, num_base, pos_base, set_energy, pkt_control, pkt_data, \
             d_threshold, r1, r2, decimal, decrease_t, increase_t, l, super_round, diff_per, diff_per_ch)
