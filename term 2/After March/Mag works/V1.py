@@ -628,6 +628,7 @@ def optimize_t(cluster_head, cluster_member, cm_select, max_distance, decimal, \
                         if cluster_member[cm][3] < 1:
                             if cluster_member[cm][2] >= e_avg*1.1:
                                 cluster_member[cm][3] =  round(cluster_member[cm][3] + 0.01, decimal)
+##                                ถ้า t = 0.999 เข้าเคสนี้เจอ +0.01 = 1.009
                             elif cluster_member[cm][2] >= e_avg*1.05 and cluster_member[cm][2] < e_avg*1.1:
                                 cluster_member[cm][3] =  round(cluster_member[cm][3] + 0.0075, decimal)
                             elif cluster_member[cm][2] >= e_avg and cluster_member[cm][2] < e_avg*1.05:
@@ -652,7 +653,7 @@ def optimize_t(cluster_head, cluster_member, cm_select, max_distance, decimal, \
                                 cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.008, decimal)
                             elif cluster_member[cm][2] < e_avg*0.9:
                                 cluster_member[cm][3] =  round(cluster_member[cm][3] - 0.01, decimal) 
-                             
+##                                 ถ้า t = 0.0001 เข้าเคสนี้เจอ -0.01 = -0.0099
 
 
     return cluster_head, cluster_member, dead, ch_t_compare, check_optimize_t
