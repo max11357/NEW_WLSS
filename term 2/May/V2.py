@@ -410,97 +410,103 @@ def check_data(cluster_head, cluster_member, cache, collect_envi, \
     send_or_not = []
     check_super_round = 1
     real_send = [count_lap, len(cluster_member)]
-    bs_current = [count_lap,count_sr+1]
+    
     if dead == 0:
         # cm
         if count_sr == 0:
+            sum_origi_ch = [ [] for _ in range(len(cluster_head))]
             for cm in range(len(cluster_member)):
+                sum_origi_ch[cm_select[cm][0]].append( float(eval('at%d'% (cluster_member[cm][4]))[0][cache]))
                 send_or_not.append([cluster_member[cm][5], 1])
                 collect_envi.append([cluster_member[cm][5], eval('at%d'% (cluster_member[cm][4]))[0][cache]])
             real_send.append(len(cluster_member))
-            
-        else:#for ch in range(len(cluster_head)):
-##                ch_avg = 0
-##                send_or_not.append([cluster_head[ch][5], 1])
+        else:
             real_cm_send  = 0
+            sum_origi_ch = [ [] for _ in range(len(cluster_head))]
             for cm in range(len(cluster_member)):
+                sum_cm = 0
+                count = 0
                 for cec in collect_envi:
                     if cluster_member[cm][5] == cec[0]:
-                        print(cluster_member)
                         old = float(cec[1])
                         new = float(eval('at%d'% (cluster_member[cm][4]))[0][cache])
                         diff = abs(old - new) / ((old+new)/2)*100
+                        sum_origi_ch[cm_select[cm][0]].append( eval('at%d'% (cluster_member[cm][4]))[0][cache])
                         if diff >= diff_per:
                             real_cm_send += 1 # real CM send
-                            # print(diff_per, diff)
                             send_or_not.append([cluster_member[cm][5], 1])
                             cec[1] = new
                         else:
                             send_or_not.append([cluster_member[cm][5], 0])
+                    count += 1
             real_send.append(real_cm_send)
-            
         # ch
         real_send.append(len(cluster_head))
-        
         sum_envi_ch = [ [] for _ in range(len(cluster_head))]
         for cm in range(len(cluster_member)):
-            
             sum_envi_ch[cm_select[cm][0]].append(float(collect_envi[cm][1]))
         if count_sr == 0:
-            ch_previous = [count_lap,count_sr+1]
+            ch_change = []
+            bs_change = []
+            origi = []
             real_send.append(len(cluster_head))
             for ch in range(len(cluster_head)):
+                sum_origi_ch[ch].append(float(eval('at%d'% (cluster_head[ch][4]))[0][cache]))
                 sum_envi_ch[ch].append(float(eval('at%d'% (cluster_head[ch][4]))[0][cache]))
             for ch in range(len(cluster_head)):
                 ch_avg = 0
                 send_or_not.append([cluster_head[ch][5], 1])
                 collect_envi.append([cluster_head[ch][5], sum(sum_envi_ch[ch])/ float(len(sum_envi_ch[ch]))])# avg of ch
-                ch_avg = sum(sum_envi_ch[ch])/ float(len(sum_envi_ch[ch]))
-                ch_previous.append("%.4f"%ch_avg)
-                
-                bs_current = ch_previous
+                ch_change.append([count_lap,ch, sum(sum_envi_ch[ch])/ float(len(sum_envi_ch[ch]))])
+                bs_change.append([count_lap,ch, sum(sum_envi_ch[ch])/ float(len(sum_envi_ch[ch]))])
             with open('data at ch '+str(super_round)+' '+str(diff_per)+'.csv', 'a', newline='') as csvnew:
                 write = csv.writer(csvnew)
-                for line in [ch_previous]:
-                    write.writerow(line)
-            with open('data at bs  '+str(super_round)+' '+str(diff_per)+'.csv', 'a', newline='') as csvnew:
+                for item in ch_change:
+                    write.writerow(item)
+            with open('data at bs '+str(super_round)+' '+str(diff_per)+'.csv', 'a', newline='') as csvnew:
                 write = csv.writer(csvnew)
-                for line in [bs_current]:
-                    write.writerow(line)
-##            print(count_sr+1,ch_previous)
-##
+                for item in bs_change:
+                    write.writerow(item)
         else:
-            
+            ch_change = []
+            bs_change = []
             ch_current = [count_lap,count_sr+1]
+            sum_origi_ch = [ [] for _ in range(len(cluster_head))]
             real_ch_send = 0
+            x = 0
             for ch in range(len(cluster_head)):
+                sum_origi_ch[ch].append(float(eval('at%d'% (cluster_head[ch][4]))[0][cache]))
                 sum_envi_ch[ch].append(float(eval('at%d'% (cluster_head[ch][4]))[0][cache]))
+            count = 0
             for ch in range(len(cluster_head)):
                 for cec in collect_envi:
                     if cluster_head[ch][5] == cec[0]:
                         old = float(cec[1])
+                        origi = sum(sum_origi_ch[ch])/ float(len(sum_origi_ch[ch]))
                         new = sum(sum_envi_ch[ch])/ float(len(sum_envi_ch[ch]))
                         diff = abs(old - new) / ((old+new)/2)*100
-                        ch_current.append("%.4f"%new)
+                        y = [count_lap,ch,origi,old, new]
                         if diff >= diff_per_ch:
-                            bs_current.append("%.4f"%new)
+                            x = [count_lap,ch,origi,old, new, new]
+                            offen = [count_lap,ch,count]
+                            count +=1
                             real_ch_send += 1 # real CM send
                             send_or_not.append([cluster_head[ch][5], 1])
                             cec[1] = new
                         else:
-                            bs_current.append("%.4f"%new)
+                            x = [count_lap,ch,origi,old,new,old]
                             send_or_not.append([cluster_head[ch][5], 0])
-
-##            print(count_sr+1,ch_current)              
+                ch_change.append(y)
+                bs_change.append(x)
+            print('...',len(cluster_head),count_lap, count)
             with open('data at ch '+str(super_round)+' '+str(diff_per)+'.csv', 'a', newline='') as csvnew:
                 write = csv.writer(csvnew)
-                for line in [ch_current]:
-                    write.writerow(line)
-            with open('data at bs  '+str(super_round)+' '+str(diff_per)+'.csv', 'a', newline='') as csvnew:
+                for item in ch_change:
+                    write.writerow(item)
+            with open('data at bs '+str(super_round)+' '+str(diff_per)+'.csv', 'a', newline='') as csvnew:
                 write = csv.writer(csvnew)
-                for line in [bs_current]:
-                    write.writerow(line)
-            real_send.append(real_ch_send)
+                for item in bs_change:
+                    write.writerow(item)
         cache += 1
         with open('real send '+str(super_round)+' '+str(diff_per)+'.csv', 'a', newline='') as csvnew:
             write = csv.writer(csvnew)
@@ -615,7 +621,7 @@ def optimize_t(cluster_head, cluster_member, cm_select, max_distance, decimal, \
                     diff = energy/e_avg
                     if diff > 1.1:
                         ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + 0.001, decimal)])
-                        cluster_head[ch][3] =  round(cluster_head[ch][3] + 0.01, decimal)
+                        cluster_head[ch][3] =  round(cluster_head[ch][3] + 0.001, decimal)
                     elif diff > 0.9 and diff <= 1.1:
                         t_change = abs(diff-0.9)*0.005
                         ch_t_compare.append([ch, cluster_head[ch][3], round(cluster_head[ch][3] + t_change, decimal)])
@@ -908,7 +914,7 @@ height = 100 # meter
 density = float(0.0125)
 num_base = 1
 pos_base = "-50,50"
-set_energy = 0.5# set energy = 1 Joule
+set_energy = 3# set energy = 1 Joule
 pkt_control = 200 # bit
 pkt_data = 4000  # bit
 d_threshold = 87  # **********************
@@ -918,11 +924,11 @@ decimal = 6
 decrease_t = 0.01
 increase_t = 0.01
 super_round = 3
-diff_per = 2
+diff_per = 0
 diff_per_ch = 1
 
 
-for l in range(1):
+for l in range(10):
     if l == 0:
         header = ['A1','B1','C1']
         fields = ['A1','B1','C1','D1','E1','F1','G1','H1','I1','J1','K1','L1']
