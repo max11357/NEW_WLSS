@@ -524,9 +524,9 @@ def check_data(cluster_head, cluster_member, cache, collect_envi, \
             for line in [real_send]:
                 write.writerow(line)
         
-        print(collect_times)
+        # print(collect_times)
         # print('...',len(cluster_head),count_lap, count)
-        print(count_lap, "end")
+        # print(count_lap, "end")
     
     return cache, send_or_not, collect_envi, check_super_round
 
@@ -699,7 +699,7 @@ def optimize_t(cluster_head, cluster_member, cm_select, max_distance, decimal, \
 
 def back_to_cm_dynamic(cluster_head, cluster_member, max_distance, count_lap, \
         dead_round, dead, count_ch_member, len_cm, cm_out_of_range, ch_t_compare, \
-        check_super_round, super_round, count_sr, check_optimize_t, cache, collect_envi, diff_per):
+        check_super_round, super_round, count_sr, check_optimize_t, cache, collect_envi, diff_per, collect_times):
     """ before next loop all cluster switch back to node_member """
     # collect data highest distance from each cluster
     if dead == 0:
@@ -726,6 +726,13 @@ def back_to_cm_dynamic(cluster_head, cluster_member, max_distance, count_lap, \
             count_sr = 0
             ch_t_compare = []
             collect_envi = []
+
+            # collect amount of times ch not send
+            cache_ct = 0
+            for i in collect_times:
+                cache_ct += sum(i)
+            print(cache_ct/len(collect_times))
+            print("")
             
             for ch in cluster_head:
                 if ch not in cluster_member:
@@ -785,6 +792,7 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
             cache = 0
         
         if check_super_round == 0:
+            
             cch, cluster_member = \
             random_cch(cm_original, len_cm, super_round, diff_per, count_lap, dead, decimal)
 
@@ -801,8 +809,8 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
             cluster_head, cluster_member = \
             comp_2(me_ch, shutdown, cluster_member, dead, super_round, diff_per)
 
-            # collect amount of times ch not send 
-            collect_times = [ [] for _ in range(len(cluster_head))] 
+            # collect amount of times ch not send
+            collect_times = [ [] for _ in range(len(cluster_head))]
             # ----------------------------------------------------------------------------------
             
             cluster_head, cluster_member, dead, dead_point, used_energy = \
@@ -860,7 +868,7 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
         collect_envi, ch_t_compare = \
         back_to_cm_dynamic(cluster_head, cluster_member, max_distance, count_lap, \
             dead_round, dead, count_ch_member, len_cm, cm_out_of_range, ch_t_compare, \
-            check_super_round, super_round, count_sr, check_optimize_t, cache, collect_envi, diff_per)
+            check_super_round, super_round, count_sr, check_optimize_t, cache, collect_envi, diff_per, collect_times)
 
         check_ch = []
         if dead == 0:
