@@ -393,7 +393,7 @@ def e_conf(cluster_head, cluster_member, pkt_control, elec_tran, \
 
 
 def check_data(cluster_head, cluster_member, cache, collect_envi, \
-        cm_select, count_sr, diff_per, dead, diff_per_ch, super_round, count_lap):
+        cm_select, count_sr, diff_per, dead, diff_per_ch, super_round, count_lap, collect_times):
 
     # pull data
     at1, at2, at3, at4, at5, at6, at7, at8, at9, at10, \
@@ -440,6 +440,7 @@ def check_data(cluster_head, cluster_member, cache, collect_envi, \
                             send_or_not.append([cluster_member[cm][5], 0])
                     count += 1
             real_send.append(real_cm_send)
+        
         # ch
         real_send.append(len(cluster_head))
         sum_envi_ch = [ [] for _ in range(len(cluster_head))]
@@ -473,6 +474,7 @@ def check_data(cluster_head, cluster_member, cache, collect_envi, \
             ch_current = [count_lap,count_sr+1]
             sum_origi_ch = [ [] for _ in range(len(cluster_head))]
             real_ch_send = 0
+            
             x = 0
             for ch in range(len(cluster_head)):
                 sum_origi_ch[ch].append(float(eval('at%d'% (cluster_head[ch][4]))[0][cache]))
@@ -493,12 +495,21 @@ def check_data(cluster_head, cluster_member, cache, collect_envi, \
                             real_ch_send += 1 # real CM send
                             send_or_not.append([cluster_head[ch][5], 1])
                             cec[1] = new
+
+                            # collect amount of times ch not send
+                            collect_times[ch].append(0)
+
                         else:
                             x = [count_lap,ch,origi,old,new,old]
                             send_or_not.append([cluster_head[ch][5], 0])
+                            
+                            # collect amount of times ch not send
+                            collect_times[ch].append(1)
+                            
+
                 ch_change.append(y)
                 bs_change.append(x)
-            print('...',len(cluster_head),count_lap, count)
+            
             with open('data at ch '+str(super_round)+' '+str(diff_per)+'.csv', 'a', newline='') as csvnew:
                 write = csv.writer(csvnew)
                 for item in ch_change:
@@ -512,6 +523,10 @@ def check_data(cluster_head, cluster_member, cache, collect_envi, \
             write = csv.writer(csvnew)
             for line in [real_send]:
                 write.writerow(line)
+        
+        print(collect_times)
+        # print('...',len(cluster_head),count_lap, count)
+        print(count_lap, "end")
     
     return cache, send_or_not, collect_envi, check_super_round
 
@@ -750,6 +765,7 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
     count_lap = 1
     dead = 0
     
+    
     bs_member, cm_original = [], []
     
     
@@ -784,6 +800,9 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
 
             cluster_head, cluster_member = \
             comp_2(me_ch, shutdown, cluster_member, dead, super_round, diff_per)
+
+            # collect amount of times ch not send 
+            collect_times = [ [] for _ in range(len(cluster_head))] 
             # ----------------------------------------------------------------------------------
             
             cluster_head, cluster_member, dead, dead_point, used_energy = \
@@ -813,7 +832,7 @@ def start(width, height, density, num_base, pos_base, set_energy, pkt_control, p
 
         cache, send_or_not, collect_envi, check_super_round = \
         check_data(cluster_head, cluster_member, cache, collect_envi, cm_select, count_sr, \
-            diff_per, dead, diff_per_ch, super_round, count_lap)
+            diff_per, dead, diff_per_ch, super_round, count_lap, collect_times)
 
 
         cluster_head, cluster_member, dead, dead_point, used_energy = \
@@ -923,12 +942,12 @@ r2 = r1*((2*math.log(10))**(0.5)) # meter
 decimal = 6
 decrease_t = 0.01
 increase_t = 0.01
-super_round = 3
+super_round = 10
 diff_per = 0
 diff_per_ch = 1
 
 
-for l in range(10):
+for l in range(1):
     if l == 0:
         header = ['A1','B1','C1']
         fields = ['A1','B1','C1','D1','E1','F1','G1','H1','I1','J1','K1','L1']
